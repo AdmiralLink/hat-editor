@@ -29,7 +29,7 @@ class DomEl {
                 }
             }
             if (this.id && this.id.length == 1) {
-                this.el.id = this.id.replace('#','');
+                this.el.id = this.id[0].replace('#','');
             }
             return this.el;
         }   

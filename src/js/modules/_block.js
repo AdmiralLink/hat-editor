@@ -1,6 +1,7 @@
 export default Block;
 
-import DomEl from '/../lib/_DomEl.js';
+import DomEl from './../lib/_DomEl.js';
+import ParagraphToolbar from './_paragraphToolbar.js';
 
 class Block {
     constructor(hat) {
@@ -115,6 +116,10 @@ class Block {
 
     delete() {
         this.editor.removeBlock(this);
+    }
+
+    focus() {
+        this.contentEl.focus();
     }
 
     getElement() {

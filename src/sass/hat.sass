@@ -63,6 +63,58 @@
                 left: 50%
                 transform: translate(-50%, -50%)
         &.paragraph
-            div[contenteditable="true"]
-                min-height: 88px
-                padding: 10px
+            .toolbar
+                button
+                    background: white
+                    border-left: 0
+                    border-top: 0
+                    border-bottom: 0
+                    border-right: 1px solid rgba(0,0,0,0.3)
+                    color: #777
+                    cursor: pointer
+                    &:hover
+                        color: #333
+                    &.active
+                        color: blue
+            position: relative
+            .contentContainer
+                position: relative
+                transform-style: perserve-3d
+                div[contenteditable="true"]
+                    min-height: 100px
+                    backface-visibility: hidden
+                    position: relative
+                    padding: 10px
+                    width: 100%
+                    transition: transform 0.8s
+                    z-index: 1
+                    transform-origin: center
+                    transform: rotateX(0deg)
+                    &.editContainer
+                        border: solid 1px #ddd
+                    &.htmlView
+                        background: #eee
+                        font-family: monospace
+                    &.flip
+                        position: absolute
+                        top: 0
+                        left: 0
+                        transform: rotateX(-180deg)
+
+
+@-webkit-keyframes flip-diagonal-2-br
+    0%
+        -webkit-transform: rotate3d(-1, 1, 0, 0deg)
+        transform: rotate3d(-1, 1, 0, 0deg)
+    100%
+        -webkit-transform: rotate3d(-1, 1, 0, 180deg)
+        transform: rotate3d(-1, 1, 0, 180deg)
+@keyframes flip-diagonal-2-br
+    0%
+        -webkit-transform: rotate3d(-1, 1, 0, 0deg) 
+        transform: rotate3d(-1, 1, 0, 0deg)
+        position: relative
+    100%
+        -webkit-transform: rotate3d(-1, 1, 0, 180deg)
+        transform: rotate3d(-1, 1, 0, 180deg)
+        position: absolute
