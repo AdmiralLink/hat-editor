@@ -3836,54 +3836,141 @@
   };
 
   class DomButton { 
-      constructor(title, icon) {
-          let buttonEl = new DomEl('button[title="' + title + '"]');
-          buttonEl.append(new DomEl('i.fas.fa-' + icon));
+      constructor(title, icon, btnClass, text) {
+          let btn = (btnClass) ? 'button.' + btnClass : 'button';
+          let buttonEl = new DomEl(btn + '[title="' + title + '"]');
+          if (text) {
+              buttonEl.innerText = text;
+          }
+          if (icon) {
+              buttonEl.append(new DomEl('i.fas.fa-' + icon));
+          }
           return buttonEl
       }
   }
 
-  class ParagraphToolbar {
-      constructor(paragraphBlock) {
-          this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
-          this.addFormattingButtons();
-          this.addHtmlView();
-          this.parentBlock = paragraphBlock;
-          paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
-      }
-
-      addFormattingButtons() {
-          let toolbar = this;
-          let bold = new DomButton('Make selected text bold', 'bold');
-          toolbar.container.append(bold);
-          let italic = new DomButton('Make selected text italicized', 'italic');
-          toolbar.container.append(italic);
-          let underline = new DomButton('Make selected text underlined', 'underline');
-          toolbar.container.append(underline);
-      }
-
-      addHtmlView() {
-          let toolbar = this;
-          let el = new DomButton('View HTML', 'laptop-code');
-          el.addEventListener('click', function() {
-              toolbar.toggleHtmlView();
-          });
-          toolbar.container.append(el);
-      }
-
-      toggleHtmlView() {
-          if (this.parentBlock.view == 'content') {
-              let code = this.parentBlock.getHtmlFromContent();
-              this.parentBlock.htmlEl.innerText = code;
-              this.parentBlock.view = 'html';
+  class MiniModal {
+      constructor(content) {
+          this.options = {
+              cancelButtonClass: 'btnCancel',
+              cancelButtonText: 'Cancel',
+              cancelButtonTitle: 'Cancel action',
+              confirmButtonClass: 'btnConfirm',
+              confirmButtonText: 'OK',
+              confirmButtonTitle: 'Proceed with action',
+              closeOnBackgroundClick: true,
+              closeX: true,
+              confirm: false,
+              content: false,
+              contentType: 'text',
+              header: false,
+          };
+          if (typeof(content) == 'string') {
+              this.options.content = content;
           } else {
-              let html = this.parentBlock.getContentFromHtml();
-              this.parentBlock.editEl.innerHTML = html;
-              this.parentBlock.view = 'content';
+              for (let [key,value] of Object.entries(content)) {
+                  this.options[key] = value;
+              }
           }
-          this.parentBlock.editEl.classList.toggle('flip');
-          this.parentBlock.htmlEl.classList.toggle('flip');
-          this.parentBlock.focus();
+          this.buildModal();
+          this.addClickHandlers();
+          this.addKeyboardHandlers();
+          this.show();
+          return this.modalContainer;
+      }
+
+      addClickHandlers() {
+          let modal = this;
+          this.backgroundDiv.addEventListener('click', function() {
+              modal.cancel();
+          });
+          if (this.closeX) {
+              this.closeBtn.addEventListener('click', function() {
+                  modal.cancel();
+              });
+          }
+          this.cancelBtn.addEventListener('click', function() {
+              modal.cancel();        
+          });
+          this.confirmBtn.addEventListener('click', function() {
+              modal.confirm();
+          });
+      }
+
+      addKeyboardHandlers() {
+          let modal = this;
+          this.modalContainer.addEventListener('keyup', function(e) {
+              if (e.which == 27) {
+                  modal.cancel();
+              }
+          });
+      }
+
+      buildModal() {
+          this.backgroundDiv = new DomEl('div.miniModal-background');
+          this.modalContainer = new DomEl('div.miniModal-container');
+          this.header = new DomEl('div.modal-header');
+          if (this.options.header) {
+              let h2 = new DomEl('h2');
+              h2.text = this.options.header;
+              this.header.append(h2);
+          }
+          if (this.options.closeX) {
+              this.closeBtn = new DomButton('Close modal', 'times-circle', 'closeBtn');
+              this.header.append(this.closeBtn);
+          }
+          this.modalContainer.append(this.header);
+          this.modalContent = new DomEl('div.modal-content');
+          if (this.options.contentType == 'text') {
+              this.modalContent.innerText = this.options.content;
+          } else {
+              this.modalContent.innerHTML = this.options.content;
+          }
+          this.modalContainer.append(this.modalContent);
+          let buttonBar = new DomEl('div.modal-buttons');
+          if (this.options.confirm) {
+              this.cancelBtn = new DomButton(this.cancelButtonText, false, this.options.cancelButtonClass, this.options.cancelButtonText);
+              buttonBar.append(this.cancelBtn);
+          }
+          this.confirmBtn = new DomButton(this.confirmButtonText, false, this.options.confirmButtonClass, this.options.confirmButtonText);
+          buttonBar.append(this.confirmBtn);
+          this.modalContainer.append(buttonBar);
+      }
+
+      cancel() {
+          if (this.options.confirm) {
+              this.modalContainer.dispatchEvent(new Event('canceled'));
+          }
+          this.close();
+      }
+
+      close() {
+          this.backgroundDiv.classList.remove('show');
+          this.modalContainer.classList.remove('show');
+          let modal = this;
+          setTimeout(function() {
+              modal.backgroundDiv.remove();
+              modal.modalContainer.remove();
+          }, 750);
+      }
+
+      confirm() {
+          if (this.options.confirm) {
+              this.modalContainer.dispatchEvent(new Event('confirmed'));
+          }
+          this.close();
+      }
+
+      show() {
+          document.body.append(this.backgroundDiv);
+          document.body.append(this.modalContainer);
+          this.backgroundDiv.classList.add('show');
+          this.modalContainer.classList.add('show');
+          if (this.options.confirm) {
+              this.cancelBtn.focus();
+          } else {
+              this.confirmBtn.focus();
+          }
       }
   }
 
@@ -3912,6 +3999,9 @@
           this.blockControlsContainer.append(this.upButton);
           this.blockControlsContainer.append(this.moveButton);
           this.blockControlsContainer.append(this.downButton);
+
+          this.deleteButton = new DomButton('Delete block', 'trash-alt', 'deleteBtn');
+          this.settingsContainer.append(this.deleteButton);
       }
       
       addGlobalEvents() {
@@ -3949,6 +4039,23 @@
                   block.editor.fireEvent('blockChanged');
               }, 200);
           });
+
+          this.deleteButton.addEventListener('click', function() {
+              let modal = new MiniModal({
+                  cancelButtonTitle: 'Do not delete this block',
+                  confirmButtonText: 'Delete',
+                  confirmButtonTitle: 'Yes, delete the block',
+                  closeX: false,
+                  content: 'Are you sure you want to delete this block?',
+                  confirm: true
+              });
+              modal.addEventListener('confirmed', function() {
+                  block.delete();
+              });
+              modal.addEventListener('canceled', function() {
+                  block.focus();
+              });
+          });
       }
 
       addEvents() {}
@@ -3978,8 +4085,10 @@
               down.removeAttribute('disabled');
           }
           if (position.count == 1) {
+              this.deleteButton.setAttribute('disabled', '');
               grip.setAttribute('disabled','');
           } else {
+              this.deleteButton.removeAttribute('disabled');
               grip.removeAttribute('disabled');
           }
       }
@@ -4053,6 +4162,59 @@
           this.el.append(this.contentContainer);
           this.el.append(this.settingsContainer);
           this.addBlockControls();
+      }
+  }
+
+  class ParagraphToolbar {
+      constructor(paragraphBlock) {
+          this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
+          this.addFormattingButtons();
+          this.addHtmlView();
+          this.parentBlock = paragraphBlock;
+          paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
+      }
+
+      addFormattingButtons() {
+          let toolbar = this;
+          let bold = new DomButton('Make selected text bold', 'bold');
+          bold.addEventListener('click', function() {
+              document.execCommand('bold');
+          });
+          toolbar.container.append(bold);
+          let italic = new DomButton('Make selected text italicized', 'italic');
+          italic.addEventListener('click', function() {
+              document.execCommand('italic');
+          });
+          toolbar.container.append(italic);
+          let underline = new DomButton('Make selected text underlined', 'underline');
+          underline.addEventListener('click', function() {
+              document.execCommand('underline');
+          });
+          toolbar.container.append(underline);
+      }
+
+      addHtmlView() {
+          let toolbar = this;
+          let el = new DomButton('View HTML', 'laptop-code');
+          el.addEventListener('click', function() {
+              toolbar.toggleHtmlView();
+          });
+          toolbar.container.append(el);
+      }
+
+      toggleHtmlView() {
+          if (this.parentBlock.view == 'content') {
+              let code = this.parentBlock.getHtmlFromContent();
+              this.parentBlock.htmlEl.innerText = code;
+              this.parentBlock.view = 'html';
+          } else {
+              let html = this.parentBlock.getContentFromHtml();
+              this.parentBlock.editEl.innerHTML = html;
+              this.parentBlock.view = 'content';
+          }
+          this.parentBlock.editEl.classList.toggle('flip');
+          this.parentBlock.htmlEl.classList.toggle('flip');
+          this.parentBlock.focus();
       }
   }
 

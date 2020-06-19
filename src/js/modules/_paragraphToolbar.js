@@ -2,6 +2,7 @@ export default ParagraphToolbar;
 
 import DomButton from './../lib/_DomButton.js';
 import DomEl from './../lib/_DomEl.js';
+import MiniModal from './_miniModal.js';
 
 class ParagraphToolbar {
     constructor(paragraphBlock) {
@@ -15,10 +16,22 @@ class ParagraphToolbar {
     addFormattingButtons() {
         let toolbar = this;
         let bold = new DomButton('Make selected text bold', 'bold');
+        bold.addEventListener('click', function() {
+            // TODO: Make work in HTML mode
+            document.execCommand('bold');
+        });
         toolbar.container.append(bold);
         let italic = new DomButton('Make selected text italicized', 'italic');
+        italic.addEventListener('click', function() {
+            // TODO: Make work in HTML mode
+            document.execCommand('italic');
+        });
         toolbar.container.append(italic);
         let underline = new DomButton('Make selected text underlined', 'underline');
+        underline.addEventListener('click', function() {
+            // TODO: Make work in HTML mode 
+            document.execCommand('underline');
+        });
         toolbar.container.append(underline);
     }
 

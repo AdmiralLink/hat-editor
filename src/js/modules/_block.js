@@ -1,7 +1,8 @@
 export default Block;
 
 import DomEl from './../lib/_DomEl.js';
-import ParagraphToolbar from './_paragraphToolbar.js';
+import DomButton from './../lib/_DomButton.js';
+import MiniModal from './_miniModal.js';
 
 class Block {
     constructor(hat) {
@@ -28,6 +29,9 @@ class Block {
         this.blockControlsContainer.append(this.upButton);
         this.blockControlsContainer.append(this.moveButton);
         this.blockControlsContainer.append(this.downButton);
+
+        this.deleteButton = new DomButton('Delete block', 'trash-alt', 'deleteBtn');
+        this.settingsContainer.append(this.deleteButton);
     }
     
     addGlobalEvents() {
@@ -65,6 +69,23 @@ class Block {
                 block.editor.fireEvent('blockChanged');
             }, 200);
         });
+
+        this.deleteButton.addEventListener('click', function() {
+            let modal = new MiniModal({
+                cancelButtonTitle: 'Do not delete this block',
+                confirmButtonText: 'Delete',
+                confirmButtonTitle: 'Yes, delete the block',
+                closeX: false,
+                content: 'Are you sure you want to delete this block?',
+                confirm: true
+            });
+            modal.addEventListener('confirmed', function() {
+                block.delete();
+            });
+            modal.addEventListener('canceled', function() {
+                block.focus();
+            });
+        });
     }
 
     addEvents() {}
@@ -94,8 +115,10 @@ class Block {
             down.removeAttribute('disabled')
         }
         if (position.count == 1) {
+            this.deleteButton.setAttribute('disabled', '');
             grip.setAttribute('disabled','');
         } else {
+            this.deleteButton.removeAttribute('disabled');
             grip.removeAttribute('disabled');
         }
     }

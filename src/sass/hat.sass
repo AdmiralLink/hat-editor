@@ -30,10 +30,11 @@
             border-radius: 50%
     .block
         box-shadow: 0 0 4px rgba(0,0,0,0.35)
-        margin: 5px 0
+        margin: 10px 0
         position: relative
         display: grid
         grid-template-columns: 30px auto 30px
+        border-radius: 10px
         &.moving-down
             transition: transform 0.3s
             transform: translateY(100%)
@@ -44,12 +45,34 @@
             display: grid
             grid-template-rows: 30px auto 30px
             button
+                border: 0
+                &:first-of-type
+                    border-bottom: 1px solid rgba(0,0,0,0.3)
+                    border-top-left-radius: 10px
+                &:last-of-type
+                    border-top: 1px solid rgba(0,0,0,0.3)
+                    border-bottom-left-radius: 10px
                 background: #eee
                 cursor: pointer
                 &:nth-of-type(2)
                     cursor: grab
                 &[disabled]
                     cursor: not-allowed
+        div[aria-label="Block settings"]
+            button
+                border: 0
+                width: 31px
+                height: 31px
+                svg
+                    font-size: 12px
+                &.deleteBtn
+                    color: white
+                    border-top-right-radius: 10px
+                    background: #B11
+                    cursor: pointer
+                &:disabled
+                    cursor: not-allowed
+                    background: #DDD !important
         a.settings
             background-color: #999
             padding-left: 3px
@@ -100,6 +123,47 @@
                         top: 0
                         left: 0
                         transform: rotateX(-180deg)
+.miniModal-background
+    position: fixed
+    left: 0
+    top: 0
+    width: 100vw
+    height: 100vh
+    background: rgba(0,0,0,0.2)
+    z-index: 299
+    opacity: 0
+    transition: opacity 0.3s
+    &.show
+        opacity: 1
+        transition: opacity 0.4s
+.miniModal-container
+    font-family: "San Francisco","Helvetica Neue","Helvetica",sans-serif
+    background: white
+    width: 80%
+    max-width: 500px
+    top: 50%
+    left: 50%
+    transform: translate(-50%,-50%)
+    position: fixed
+    z-index: 300
+    opacity: 0
+    transition: opacity 0.3s
+    &.show
+        opacity: 1
+        transition: opacity 0.55s
+    .modal-content
+        padding: 20px
+    .modal-buttons
+        padding: 10px
+        display: flex
+        justify-content: space-between
+        button
+            border-radius: 3px
+            padding: 5px 10px
+            font-size: 16px
+            background: #ccc
+            border: 0
+
 
 
 @-webkit-keyframes flip-diagonal-2-br
