@@ -1,6 +1,6 @@
 export default Hat;
-import Sortable from '/../lib/_Sortable.js';
-import DomEl from '/../lib/_DomEl.js';
+import Sortable from './../lib/_Sortable.js';
+import DomEl from './../lib/_DomEl.js';
 
 var Hat = function(containerEl) {
     let Blocks = [];
@@ -47,7 +47,7 @@ var Hat = function(containerEl) {
     }
     let Interface = {
         addBlock: function(focus=true,position=false, type='paragraph') {
-            let blockClass = window.HatRack.get_block(type);
+            let blockClass = window.HatRack.getBlock(type);
             let block = new blockClass(this);
             block.el.id = 'block' + new Date().getTime();
             if (position === false) {
@@ -56,7 +56,7 @@ var Hat = function(containerEl) {
                 Elements.blockHolder.children[position].after(block.el);
             }
             if (focus) {
-                block.contentEl.focus();
+                block.focus();
             }
             Blocks[block.el.id] = block;
             BlockCount++;

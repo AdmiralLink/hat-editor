@@ -5,7 +5,8 @@
  * @author	owenm    <owen23355@gmail.com>
  * @license MIT
  */
-export default Sortable;
+
+ export default Sortable;
 
 let Sortable = function() {  
     function _typeof(obj) {

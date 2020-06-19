@@ -1,0 +1,24 @@
+{
+  "name": "hat-editor",
+  "version": "1.0.0",
+  "description": "A11y-focused WYSIWIG Editor",
+  "main": "dist/hat.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdmiralLink/hat-editor.git"
+  },
+  "author": "Kaitwalla",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AdmiralLink/hat-editor/issues"
+  },
+  "homepage": "https://github.com/AdmiralLink/hat-editor#readme",
+  "dependencies": {
+    "rollup-plugin-browsersync": "^1.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-sass": "^1.2.2"
+  }
+}

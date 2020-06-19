@@ -1,7 +1,14 @@
-import Hat from 'modules/_hat.js';
-import ParagraphBlock from 'modules/_block_paragraph.js';
+import Hat from './modules/_hat.js';
+import ParagraphBlock from './modules/_block_paragraph.js';
+import './../sass/hat.sass';
 
 window.HatRack = function() {
+    let EditorRegistry = {
+        add: function(hatInstance) {
+            this.editors[hatInstance.getContainer()] = hatInstance;
+        },
+        editors: new Map()
+    };
     let BlockRegistry = {
         default: false,
         names: ['paragraph'],
@@ -10,24 +17,34 @@ window.HatRack = function() {
         }
     };
     let Interface = {   
-        get_block: function(blockName) {
-            if (Interface.has_block(blockName)) {
+        getBlock: function(blockName) {
+            if (Interface.hasBlock(blockName)) {
                 return BlockRegistry.objects[blockName];
             }
         },
-        get_blocks: function() {
+        getBlocks: function() {
             return BlockRegistry.objects;
         },
-        has_block: function(blockName) {
+        getEditor: function(el) {
+            if (this.hasEditor(el)) {
+                return EditorRegistry.editors[el];
+            } else {
+                return false;
+            }
+        },
+        hasBlock: function(blockName) {
             return (BlockRegistry.names.indexOf(blockName) > -1);
         },
-        register_block: function(name, slug, blockObj) {
+        hasEditor: function(el) {
+            return (EditorRegistry.editors[el]);
+        },
+        registerBlock: function(name, slug, blockObj) {
             BlockRegistry.names.push(slug);
             BlockRegistry.objects[slug] = blockObj;
         },
         start: function(querySelector='.hat-editor') {
             for (var el of document.querySelectorAll(querySelector)) {
-                new Hat(el);
+                EditorRegistry.add(new Hat(el));
             }
         }
     }
