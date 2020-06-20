@@ -11,8 +11,8 @@ class ParagraphToolbar {
         this.parentBlock = paragraphBlock;
         this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
         this.addFormattingButtons();
+        this.addHeaderButton();
         this.addHtmlView();
-        this.fixKeyboardShortcuts();
         paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
     }
 
@@ -24,6 +24,17 @@ class ParagraphToolbar {
         this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock));
     }
 
+    addHeaderButton() {
+        let toolbar = this; 
+        ['h1','h2','h3','h4'].forEach(function(header) {
+            let btn = new DomButton('Insert/convert to ' + header, false, 'textBtn', header);
+            btn.addEventListener('click', function() {
+                new SelectionWrapper(header, toolbar.parentBlock.view);
+            });
+            toolbar.container.append(btn);
+        });
+    }
+
     addHtmlView() {
         let toolbar = this;
         let el = new DomButton('View HTML', 'laptop-code');
@@ -31,34 +42,6 @@ class ParagraphToolbar {
             toolbar.toggleHtmlView();
         });
         toolbar.container.append(el);
-    }
-
-    fixKeyboardShortcuts() {
-        let parentBlock = this.parentBlock; 
-        this.parentBlock.contentContainer.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch (e.keyCode) {
-                    case 66:
-                    case 98: 
-                        e.preventDefault();
-                        new SelectionWrapper('strong', parentBlock.view);
-                        return false;
-                        break;
-                    case 73:
-                    case 105: 
-                        e.preventDefault();
-                        new SelectionWrapper('em', parentBlock.view);
-                        return false;
-                        break;
-                    case 85:
-                    case 117: 
-                        e.preventDefault();
-                        new SelectionWrapper('u', parentBlock.view);
-                        return false;
-                        break;
-                }
-            }
-        });
     }
 
     toggleHtmlView() {

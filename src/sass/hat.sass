@@ -1,3 +1,6 @@
+$red: #B11
+$green: #171
+    
 .hat-editor
     box-sizing: border-box
     font-size: 18px
@@ -46,8 +49,9 @@
             grid-template-rows: 30px auto 30px
             button
                 border: 0
+                border-right: 1px solid rgba(0,0,0,0.1)
                 &:first-of-type
-                    border-bottom: 1px solid rgba(0,0,0,0.3)
+                    border-bottom: 1px solid rgba(0,0,0,0.3) 
                     border-top-left-radius: 10px
                 &:last-of-type
                     border-top: 1px solid rgba(0,0,0,0.3)
@@ -59,6 +63,7 @@
                 &[disabled]
                     cursor: not-allowed
         div[aria-label="Block settings"]
+            border-left: 1px solid rgba(0,0,0,0.1)
             button
                 border: 0
                 width: 31px
@@ -68,7 +73,7 @@
                 &.deleteBtn
                     color: white
                     border-top-right-radius: 10px
-                    background: #B11
+                    background: $red
                     cursor: pointer
                 &:disabled
                     cursor: not-allowed
@@ -87,7 +92,9 @@
                 transform: translate(-50%, -50%)
         &.paragraph
             .toolbar
+                vertical-align: middle
                 button
+                    font-size: 19px
                     background: white
                     border-left: 0
                     border-top: 0
@@ -99,6 +106,14 @@
                         color: #333
                     &.active
                         color: blue
+                    &.textBtn
+                        font-size: 10px
+                        text-transform: uppercase
+                        padding: 7px 5px
+                        font-weight: bold
+                        top: -3px
+                        position: relative
+                        margin-bottom: -3px
             position: relative
             .contentContainer
                 position: relative
@@ -115,9 +130,41 @@
                     transform-origin: center
                     transform: rotateX(0deg)
                     &.editContainer
-                        border: solid 1px #ddd
+                        border-top: solid 1px #ddd
+                        h1, h2, h3, h4, p
+                            padding: 0
+                            padding-left: 5px
+                            position: relative
+                            &::before
+                                text-transform: uppercase
+                                color: #999
+                                font-size: 8px
+                                position: absolute
+                                left: -7px
+                                top: 62%
+                                transform: translateY(-50%)
+                        h1, h2, h3, h4
+                            margin: 4px 0
+                        h1
+                            font-size: 30px
+                            &::before
+                                content: 'h1'
+                        h2
+                            font-size: 24px
+                            &::before
+                                content: 'h2'
+                        h3
+                            font-size: 20px
+                            &::before
+                                content: 'h3'
+                        h4
+                            font-size: 18px
+                            &::before
+                                content: 'h4'
                         p
                             margin: 2px 0
+                            &::before
+                                content: 'p'
                     &.htmlView
                         background: #eee
                         font-family: monospace
@@ -168,6 +215,12 @@
             font-size: 16px
             background: #ccc
             border: 0
+            &.confirmBtn
+                background: $green
+                color: white
+            &.deleteBtn
+                background: $red
+                color: white
 
 
 

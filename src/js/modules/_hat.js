@@ -85,7 +85,7 @@ var Hat = function(containerEl) {
             var blockId = block.el.id;
             if (BlockCount > 1){
                 if (Blocks.hasOwnProperty(blockId)) {
-                    Blocks[block.el.previousSibling.id].contentEl.focus();
+                    Blocks[block.el.previousSibling.id].focus();
                     block.el.remove();
                     Blocks.splice(blockId);
                     BlockCount--;

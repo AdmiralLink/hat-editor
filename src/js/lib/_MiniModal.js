@@ -83,10 +83,10 @@ class MiniModal {
         this.modalContainer.append(this.modalContent);
         let buttonBar = new DomEl('div.modal-buttons');
         if (this.options.confirm) {
-            this.cancelBtn = new DomButton(this.cancelButtonText, false, this.options.cancelButtonClass, this.options.cancelButtonText);
+            this.cancelBtn = new DomButton(this.options.cancelButtonTitle, false, this.options.cancelButtonClass, this.options.cancelButtonText);
             buttonBar.append(this.cancelBtn);
         }
-        this.confirmBtn = new DomButton(this.confirmButtonText, false, this.options.confirmButtonClass, this.options.confirmButtonText);
+        this.confirmBtn = new DomButton(this.options.confirmButtonTitle, false, this.options.confirmButtonClass, this.options.confirmButtonText);
         buttonBar.append(this.confirmBtn);
         this.modalContainer.append(buttonBar);
     }

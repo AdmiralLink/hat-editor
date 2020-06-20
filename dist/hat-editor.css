@@ -54,6 +54,7 @@
 }
 .hat-editor .block div[aria-label="Block Controls"] button {
   border: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
   background: #eee;
   cursor: pointer;
 }
@@ -70,6 +71,9 @@
 }
 .hat-editor .block div[aria-label="Block Controls"] button[disabled] {
   cursor: not-allowed;
+}
+.hat-editor .block div[aria-label="Block settings"] {
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
 }
 .hat-editor .block div[aria-label="Block settings"] button {
   border: 0;
@@ -106,7 +110,11 @@
 .hat-editor .block.paragraph {
   position: relative;
 }
+.hat-editor .block.paragraph .toolbar {
+  vertical-align: middle;
+}
 .hat-editor .block.paragraph .toolbar button {
+  font-size: 19px;
   background: white;
   border-left: 0;
   border-top: 0;
@@ -120,6 +128,15 @@
 }
 .hat-editor .block.paragraph .toolbar button.active {
   color: blue;
+}
+.hat-editor .block.paragraph .toolbar button.textBtn {
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 7px 5px;
+  font-weight: bold;
+  top: -3px;
+  position: relative;
+  margin-bottom: -3px;
 }
 .hat-editor .block.paragraph .contentContainer {
   position: relative;
@@ -138,10 +155,54 @@
   transform: rotateX(0deg);
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer {
-  border: solid 1px #ddd;
+  border-top: solid 1px #ddd;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
+  padding: 0;
+  padding-left: 5px;
+  position: relative;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p::before {
+  text-transform: uppercase;
+  color: #999;
+  font-size: 8px;
+  position: absolute;
+  left: -7px;
+  top: 62%;
+  transform: translateY(-50%);
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4 {
+  margin: 4px 0;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1 {
+  font-size: 30px;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1::before {
+  content: "h1";
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2 {
+  font-size: 24px;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2::before {
+  content: "h2";
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3 {
+  font-size: 20px;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3::before {
+  content: "h3";
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4 {
+  font-size: 18px;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4::before {
+  content: "h4";
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
   margin: 2px 0;
+}
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p::before {
+  content: "p";
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].htmlView {
   background: #eee;
@@ -204,6 +265,14 @@
   font-size: 16px;
   background: #ccc;
   border: 0;
+}
+.miniModal-container .modal-buttons button.confirmBtn {
+  background: #171;
+  color: white;
+}
+.miniModal-container .modal-buttons button.deleteBtn {
+  background: #B11;
+  color: white;
 }
 
 @-webkit-keyframes flip-diagonal-2-br {

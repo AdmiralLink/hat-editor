@@ -27,6 +27,9 @@ class SelectionWrapper {
                         new CursorFocus(ul.childNodes[0]);
                     }
                 } else {
+                    var badTag = false;
+                    var commandTag = false;
+                    var isBlockLevelElement = false;
                     switch (tag) {
                         case 'strong':
                             var badTag = 'b';
@@ -40,17 +43,22 @@ class SelectionWrapper {
                             var badTag = false;
                             var command = 'underline';
                             break;
+                        case 'h1':
+                        case 'h2':
+                        case 'h3':
+                        case 'h4':
+                            var command = 'formatBlock';
+                            commandTag = tag;
+                            break;
                     } 
-                    if (!sel.isCollapsed) {
-                        document.execCommand(command);
-                        if (badTag) {
-                            let regex = new RegExp('\<\/?' + badTag + '>', 'g');
-                            let badClose = '</' + badTag + '>';
-                            let goodClose = '</' + tag + '>';
-                            let badOpen = badClose.replace('/','');
-                            let goodOpen = goodClose.replace('/','');
-                            sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
-                        }
+                    document.execCommand(command, false, commandTag);
+                    if (badTag) {
+                        let regex = new RegExp('\<\/?' + badTag + '>', 'g');
+                        let badClose = '</' + badTag + '>';
+                        let goodClose = '</' + tag + '>';
+                        let badOpen = badClose.replace('/','');
+                        let goodOpen = goodClose.replace('/','');
+                        sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
                     }
                 }
             } else {

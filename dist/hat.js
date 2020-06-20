@@ -3820,7 +3820,7 @@
               var blockId = block.el.id;
               if (BlockCount > 1){
                   if (Blocks.hasOwnProperty(blockId)) {
-                      Blocks[block.el.previousSibling.id].contentEl.focus();
+                      Blocks[block.el.previousSibling.id].focus();
                       block.el.remove();
                       Blocks.splice(blockId);
                       BlockCount--;
@@ -3930,10 +3930,10 @@
           this.modalContainer.append(this.modalContent);
           let buttonBar = new DomEl('div.modal-buttons');
           if (this.options.confirm) {
-              this.cancelBtn = new DomButton(this.cancelButtonText, false, this.options.cancelButtonClass, this.options.cancelButtonText);
+              this.cancelBtn = new DomButton(this.options.cancelButtonTitle, false, this.options.cancelButtonClass, this.options.cancelButtonText);
               buttonBar.append(this.cancelBtn);
           }
-          this.confirmBtn = new DomButton(this.confirmButtonText, false, this.options.confirmButtonClass, this.options.confirmButtonText);
+          this.confirmBtn = new DomButton(this.options.confirmButtonTitle, false, this.options.confirmButtonClass, this.options.confirmButtonText);
           buttonBar.append(this.confirmBtn);
           this.modalContainer.append(buttonBar);
       }
@@ -3980,7 +3980,6 @@
           this.setup();
           this.editor = hat;
           this.createElement();
-          this.registerKeyboardShortcuts();
           this.registerSettings();
           this.blockRegistration();
           this.addGlobalEvents();
@@ -4008,42 +4007,23 @@
       addGlobalEvents() {
           var block = this;
           this.el.addEventListener('keydown', function(e) {
-              block.keysDown.push(e.which);
-              block.checkKeyboardShortcuts();
-          });
-          this.el.addEventListener('keyup', function(e) {
-              block.keysDown.splice(block.keysDown.indexOf(e.which));
+              block.checkKeyboardShortcuts(e);
           });
           let blockContainer = this.editor.getBlockContainer();
           blockContainer.addEventListener('blockChanged', function() {
               block.checkBlockSettingsControls();
           });
           this.upButton.addEventListener('click', function() {
-              var target = block.el.previousSibling;
-              block.el.classList.add('moving-up');
-              target.classList.add('moving-down');
-              setTimeout(function() {
-                  block.el.classList.remove('moving-up');
-                  target.classList.remove('moving-down');
-                  block.editor.getBlockContainer().insertBefore(block.el, block.el.previousSibling);
-                  block.editor.fireEvent('blockChanged');
-              }, 200);
+              block.moveBlock('up');
           });
           this.downButton.addEventListener('click', function() {
-              var target = block.el.nextSibling;
-              block.el.classList.add('moving-down');
-              target.classList.add('moving-up');
-              setTimeout(function() {
-                  block.el.classList.remove('moving-down');
-                  target.classList.remove('moving-up');
-                  block.editor.getBlockContainer().insertBefore(block.el, block.el.nextSibling.nextSibling);
-                  block.editor.fireEvent('blockChanged');
-              }, 200);
+              block.moveBlock('down');
           });
 
           this.deleteButton.addEventListener('click', function() {
               let modal = new MiniModal({
                   cancelButtonTitle: 'Do not delete this block',
+                  confirmButtonClass: 'deleteBtn',
                   confirmButtonText: 'Delete',
                   confirmButtonTitle: 'Yes, delete the block',
                   closeX: false,
@@ -4071,21 +4051,21 @@
       blockRegistration() {}
 
       checkBlockSettingsControls() {
-          let position = this.editor.getBlockPosition(this.el);
+          this.getPosition();
           let up = this.upButton;
           let down = this.downButton;
           let grip = this.moveButton;
-          if (position.first) {
+          if (this.position.first) {
               up.setAttribute('disabled','');
           } else {
               up.removeAttribute('disabled');
           }
-          if (position.last) {
+          if (this.position.last) {
               down.setAttribute('disabled','');
           } else {
               down.removeAttribute('disabled');
           }
-          if (position.count == 1) {
+          if (this.position.count == 1) {
               this.deleteButton.setAttribute('disabled', '');
               grip.setAttribute('disabled','');
           } else {
@@ -4094,16 +4074,27 @@
           }
       }
 
-      checkKeyboardShortcuts() {
-          if (this.keysDown.length > 1) {
-              let keys = this.keysDown.sort(function(a,b) { return ((a < b)) ? -1 : 1; });
-              if (this.keyboardShortcuts.hasOwnProperty(keys[0])) {
-                  let primaryKey = this.keyboardShortcuts[keys.shift()];
-                  if (primaryKey.hasOwnProperty(keys)) {
-                      this.keyboardShortcutActions[primaryKey[keys]]();
+      checkKeyboardShortcuts(e) {
+          if (e.ctrlKey | e.metaKey) {
+              if (e.shiftKey) {
+                  switch (e.keyCode) {
+                      case 38:
+                          this.moveBlock('up');
+                          break;
+                      case 40:
+                          this.moveBlock('down');
+                          break;
+                  }
+              } else {
+                  switch (e.keyCode) {
+                      case 8:
+                      case 46:
+                          this.delete();
+                          break;
                   }
               }
           }
+          this.keyboardShortcuts(e);
       }
 
       createElement() {}
@@ -4124,37 +4115,36 @@
           return this.contentEl.innerHtml();
       }
 
-      registerGlobalKeyboardShortcuts() {
-          var element = this;
-          this.keyboardShortcutActions['deleteBlock'] = function() {
-              element.delete();
-          };
-          this.registerKeyboardShortcut([91,8],'deleteBlock');
-          this.registerKeyboardShortcut([93,8],'deleteBlock');
+      getPosition() {
+          this.position = this.editor.getBlockPosition(this.el);
       }
 
-      registerKeyboardShortcut(keys, actionToCall) {
-          keys = keys.sort(function(a,b) { return ((a < b)) ? -1 : 1; });
-          if (!this.keyboardShortcuts.hasOwnProperty(keys[0])) { 
-              this.keyboardShortcuts[keys[0]] = [];
-          }
-          let primaryKey = this.keyboardShortcuts[keys.shift()];
-          if (primaryKey.hasOwnProperty(keys)) {
-              return false
-          } else {
-              primaryKey[keys] = actionToCall;
-          }
-      }
+      keyboardShortcuts(e) {}
 
-      registerKeyboardShortcuts() {}
+      moveBlock(direction) {
+          this.getPosition();
+          if (this.position.count == 1 || this.position.first && direction == 'up' || this.position.last && direction == 'down') {
+              return false;
+          }
+          var block = this;
+          let opposite = (direction == 'up') ? 'down' : 'up';
+          let target = (direction == 'up') ? block.el.previousSibling : block.el.nextSibling;
+          let insertPoint = (direction == 'up') ? block.el.previousSibling : block.el.nextSibling.nextSibling;
+          block.el.classList.add('moving-' + direction);
+          target.classList.add('moving-' + opposite);
+          setTimeout(function() {
+              block.el.classList.remove('moving-' + direction);
+              target.classList.remove('moving-' + opposite);
+              block.editor.getBlockContainer().insertBefore(block.el, insertPoint);
+              block.editor.fireEvent('blockChanged');
+              block.focus();
+          }, 200);
+      }
 
       registerSettings() {}
 
       setup() {
           this.keysDown = [];
-          this.keyboardShortcuts = [];
-          this.keyboardShortcutActions = {};
-          this.registerGlobalKeyboardShortcuts();
           this.el = new DomEl('div.block');
           this.blockControlsContainer = new DomEl('div[aria-label="Block Controls"]');
           this.contentContainer = new DomEl('div');
@@ -4203,6 +4193,8 @@
                           new CursorFocus(ul.childNodes[0]);
                       }
                   } else {
+                      var badTag = false;
+                      var commandTag = false;
                       switch (tag) {
                           case 'strong':
                               var badTag = 'b';
@@ -4216,16 +4208,21 @@
                               var badTag = false;
                               var command = 'underline';
                               break;
+                          case 'h1':
+                          case 'h2':
+                          case 'h3':
+                          case 'h4':
+                              var command = 'formatBlock';
+                              commandTag = tag;
+                              break;
                       } 
-                      if (!sel.isCollapsed) {
-                          document.execCommand(command);
-                          if (badTag) {
-                              let badClose = '</' + badTag + '>';
-                              let goodClose = '</' + tag + '>';
-                              let badOpen = badClose.replace('/','');
-                              let goodOpen = goodClose.replace('/','');
-                              sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
-                          }
+                      document.execCommand(command, false, commandTag);
+                      if (badTag) {
+                          let badClose = '</' + badTag + '>';
+                          let goodClose = '</' + tag + '>';
+                          let badOpen = badClose.replace('/','');
+                          let goodOpen = goodClose.replace('/','');
+                          sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
                       }
                   }
               } else {
@@ -4255,8 +4252,8 @@
           this.parentBlock = paragraphBlock;
           this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
           this.addFormattingButtons();
+          this.addHeaderButton();
           this.addHtmlView();
-          this.fixKeyboardShortcuts();
           paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
       }
 
@@ -4268,6 +4265,17 @@
           this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock));
       }
 
+      addHeaderButton() {
+          let toolbar = this; 
+          ['h1','h2','h3','h4'].forEach(function(header) {
+              let btn = new DomButton('Insert/convert to ' + header, false, 'textBtn', header);
+              btn.addEventListener('click', function() {
+                  new SelectionWrapper(header, toolbar.parentBlock.view);
+              });
+              toolbar.container.append(btn);
+          });
+      }
+
       addHtmlView() {
           let toolbar = this;
           let el = new DomButton('View HTML', 'laptop-code');
@@ -4275,31 +4283,6 @@
               toolbar.toggleHtmlView();
           });
           toolbar.container.append(el);
-      }
-
-      fixKeyboardShortcuts() {
-          let parentBlock = this.parentBlock; 
-          this.parentBlock.contentContainer.addEventListener('keydown', function(e) {
-              if (e.ctrlKey || e.metaKey) {
-                  switch (e.keyCode) {
-                      case 66:
-                      case 98: 
-                          e.preventDefault();
-                          new SelectionWrapper('strong', parentBlock.view);
-                          return false;
-                      case 73:
-                      case 105: 
-                          e.preventDefault();
-                          new SelectionWrapper('em', parentBlock.view);
-                          return false;
-                      case 85:
-                      case 117: 
-                          e.preventDefault();
-                          new SelectionWrapper('u', parentBlock.view);
-                          return false;
-                  }
-              }
-          });
       }
 
       toggleHtmlView() {
@@ -4357,6 +4340,51 @@
 
       getContentFromHtml() {
           return this.htmlEl.innerText;
+      }
+
+      keyboardShortcuts(e) {
+          if (e.ctrlKey || e.metaKey) {
+              if (e.shiftKey) {
+                  switch(e.keyCode) {
+                      case 85:
+                          new SelectionWrapper(['ul','li'], this.view);
+                          break;
+                      case 79:
+                          new SelectionWrapper(['ol', 'li'], this.view);
+                          break;
+                      case 49:
+                          new SelectionWrapper('h1', this.view);
+                          break;
+                      case 50:
+                          new SelectionWrapper('h2', this.view);
+                          break;
+                      case 51:
+                          new SelectionWrapper('h3', this.view);
+                          break;
+                      case 52:
+                          new SelectionWrapper('h4', this.view);
+                          break;
+                  }
+              }
+              switch (e.keyCode) {
+                  case 66:
+                  case 98: 
+                      e.preventDefault();
+                      new SelectionWrapper('strong', this.view);
+                      return false;
+                  case 73:
+                  case 105: 
+                      e.preventDefault();
+                      new SelectionWrapper('em', this.view);
+                      return false;
+                  case 85:
+                  case 117: 
+                      e.preventDefault();
+                      new SelectionWrapper('u', this.view);
+                      return false;
+                  
+              }
+          }
       }
   }
 
