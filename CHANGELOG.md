@@ -1,3 +1,7 @@
+# 0.2.2
+## ADDED
+- OL and UL buttons
+
 # 0.2.1
 ## ADDED
 - Keyboard shortcut intercepts for formatting (so we can replace inaccessible bs and is with strongs and ems)

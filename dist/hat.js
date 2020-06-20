@@ -3768,6 +3768,7 @@
               Internal.insertAddBlockButton();
               Interface.addBlock();
               Internal.manageSorting();
+              document.execCommand('defaultParagraphSeparator', false, 'p');
           },
           manageSorting: function() {
               Internal.sorting = Sortable.create(Elements.blockHolder, { animation: 150, group: 'blocks', handle: 'button.handle', draggable: '.block', onEnd: function() { Events.fire('blockChanged');} });
@@ -4165,39 +4166,75 @@
       }
   }
 
+  class CursorFocus {
+      constructor(el) {
+          el.focus();
+          el.innerHTML = '<br>';
+          let sel = window.getSelection();
+          let range = document.createRange();
+          range.setStart(el, 0);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+      }
+  }
+
   class SelectionWrapper {
       constructor(tag, view) {
           this.tag = tag;
           let sel = window.getSelection();
           if (sel.rangeCount) {
               if (view == 'content') {
-                  switch (tag) {
-                      case 'strong':
-                          var badTag = 'b';
-                          var command = 'bold';
-                          break;
-                      case 'em':
-                          var badTag = 'i';
-                          var command = 'italic';
-                          break;
-                      case 'u':
-                          var badTag = false;
-                          var command = 'underline';
-                          break;
-                  } 
-                  if (!sel.isCollapsed) {
+                  if (typeof(tag) == 'object') {
+                      switch (tag[0]) {
+                          case 'ol':
+                              var command = 'insertOrderedList';
+                              break;
+                          case 'ul':
+                              var command = 'insertUnorderedList';
+                              break;
+                      }
                       document.execCommand(command);
-                      if (badTag) {
-                          let badClose = '</' + badTag + '>';
-                          let goodClose = '</' + tag + '>';
-                          let badOpen = badClose.replace('/','');
-                          let goodOpen = goodClose.replace('/','');
-                          sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
+                      let nearestP = sel.anchorNode.parentElement.closest('p');
+                      if (nearestP && nearestP.childNodes[0].nodeName.toLowerCase() == tag[0]) {
+                          let ul = nearestP.childNodes[0];
+                          nearestP.parentNode.insertBefore(ul, nearestP);
+                          nearestP.remove();
+                          new CursorFocus(ul.childNodes[0]);
+                      }
+                  } else {
+                      switch (tag) {
+                          case 'strong':
+                              var badTag = 'b';
+                              var command = 'bold';
+                              break;
+                          case 'em':
+                              var badTag = 'i';
+                              var command = 'italic';
+                              break;
+                          case 'u':
+                              var badTag = false;
+                              var command = 'underline';
+                              break;
+                      } 
+                      if (!sel.isCollapsed) {
+                          document.execCommand(command);
+                          if (badTag) {
+                              let badClose = '</' + badTag + '>';
+                              let goodClose = '</' + tag + '>';
+                              let badOpen = badClose.replace('/','');
+                              let goodOpen = goodClose.replace('/','');
+                              sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
+                          }
                       }
                   }
               } else {
                   let range = sel.getRangeAt(0);
-                  document.execCommand('insertText', false, '<' + tag + '>' + range.toString() + '</' + tag + '>');
+                  if (typeof(tag) == 'object') {
+                      document.execCommand('insertText', false, '<' + tag[0] + '><' + tag[1] + '>' + range.toString() + '</' + tag[1] + '></' + tag[0] + '>');
+                  } else {
+                      document.execCommand('insertText', false, '<' + tag + '>' + range.toString() + '</' + tag + '>');
+                  }
               }
           }
       }
@@ -4227,7 +4264,8 @@
           this.container.append(new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock));
           this.container.append(new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock));
           this.container.append(new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock));
-          //toolbar.container.append(new BrowserFormattingButton('insertOrderedList', 'Create ordered list', 'bold', ['ol', 'li']));
+          this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ul', ['ul', 'li'], this.parentBlock));
+          this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock));
       }
 
       addHtmlView() {
@@ -4245,7 +4283,7 @@
               if (e.ctrlKey || e.metaKey) {
                   switch (e.keyCode) {
                       case 66:
-                          case 98: 
+                      case 98: 
                           e.preventDefault();
                           new SelectionWrapper('strong', parentBlock.view);
                           return false;
@@ -4295,12 +4333,9 @@
       focus() {
           if (this.view == undefined) {
               this.view = 'content';
-              this.editEl.focus();
-              this.starterP = new DomEl('p');
-              this.starterP.innerHTML = '&nbsp;';
-              this.editEl.append(this.starterP);
-              this.starterP.focus();
-              document.execCommand('forwardDelete');
+              let starterP = new DomEl('p');
+              this.editEl.append(starterP);
+              new CursorFocus(starterP);
           } else if (this.view == 'content') {
               this.editEl.focus();
           } else {

@@ -33,6 +33,7 @@ var Hat = function(containerEl) {
             Internal.insertAddBlockButton();
             Interface.addBlock();
             Internal.manageSorting();
+            document.execCommand('defaultParagraphSeparator', false, 'p');
         },
         manageSorting: function() {
             Internal.sorting = Sortable.create(Elements.blockHolder, { animation: 150, group: 'blocks', handle: 'button.handle', draggable: '.block', onEnd: function() { Events.fire('blockChanged')} });

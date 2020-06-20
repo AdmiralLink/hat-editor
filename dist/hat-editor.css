@@ -147,6 +147,9 @@
   background: #eee;
   font-family: monospace;
 }
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].htmlView p {
+  margin: 0;
+}
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].flip {
   position: absolute;
   top: 0;

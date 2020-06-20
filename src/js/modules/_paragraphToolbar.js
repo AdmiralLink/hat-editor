@@ -20,7 +20,8 @@ class ParagraphToolbar {
         this.container.append(new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock));
         this.container.append(new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock));
         this.container.append(new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock));
-        //toolbar.container.append(new BrowserFormattingButton('insertOrderedList', 'Create ordered list', 'bold', ['ol', 'li']));
+        this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ul', ['ul', 'li'], this.parentBlock));
+        this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock));
     }
 
     addHtmlView() {
@@ -38,7 +39,7 @@ class ParagraphToolbar {
             if (e.ctrlKey || e.metaKey) {
                 switch (e.keyCode) {
                     case 66:
-                        case 98: 
+                    case 98: 
                         e.preventDefault();
                         new SelectionWrapper('strong', parentBlock.view);
                         return false;

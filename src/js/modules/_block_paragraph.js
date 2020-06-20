@@ -3,6 +3,7 @@ export default ParagraphBlock;
 import Block from './_block.js';
 import DomEl from './../lib/_DomEl.js';
 import ParagraphToolbar from './_paragraphToolbar.js';
+import CursorFocus from '../lib/_CursorFocus.js';
 
 class ParagraphBlock extends Block {
     createElement() {
@@ -19,12 +20,9 @@ class ParagraphBlock extends Block {
     focus() {
         if (this.view == undefined) {
             this.view = 'content';
-            this.editEl.focus();
-            this.starterP = new DomEl('p');
-            this.starterP.innerHTML = '&nbsp;';
-            this.editEl.append(this.starterP);
-            this.starterP.focus();
-            document.execCommand('forwardDelete');
+            let starterP = new DomEl('p');
+            this.editEl.append(starterP);
+            new CursorFocus(starterP);
         } else if (this.view == 'content') {
             this.editEl.focus();
         } else {
