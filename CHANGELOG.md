@@ -1,11 +1,10 @@
-# 0.2.0
-## NOTE
-- Went further down the custom road again, only to be stymied on some cross-browser stuff. It's clear at this point we should actually switch over to an editor library
-
-# 0.1.1
-## NOTE
-- Did some cross-browser testing, and we are going to have fundamentally rethink how we're doing this. However, we don't have that kind of time right now.
-So we're sunsetting the custom rich-text editor part and subbing in something that already works
+# 0.2.1
+## ADDED
+- Keyboard shortcut intercepts for formatting (so we can replace inaccessible bs and is with strongs and ems)
+- BrowserFormattingButton (for easy format buttons)
+- SelectionWrapper (for doing all of our formatting in HTML)
+## MODIFIED
+- ParagraphBlock now creates an initial paragraph you start typing in
 
 # 0.1.0
 ## ADDED

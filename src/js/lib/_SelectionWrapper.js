@@ -24,7 +24,7 @@ class SelectionWrapper {
                 } 
                 if (!sel.isCollapsed) {
                     document.execCommand(command);
-                    if (badTag && !sel.anchorNode.parentElement.classList.contains('editContainer')) {
+                    if (badTag) {
                         let regex = new RegExp('\<\/?' + badTag + '>', 'g');
                         let badClose = '</' + badTag + '>';
                         let goodClose = '</' + tag + '>';

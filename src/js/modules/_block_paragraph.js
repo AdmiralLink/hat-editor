@@ -11,18 +11,20 @@ class ParagraphBlock extends Block {
         this.editEl = new DomEl('div[contentEditable=true].editContainer');
         this.htmlEl = new DomEl('div.htmlView[contentEditable=true].flip');
         this.contentEl.appendChild(this.editEl);
-        this.starterP = new DomEl('p');
-        this.editEl.append(this.starterP);
         this.contentEl.appendChild(this.htmlEl);
         this.contentContainer.appendChild(this.contentEl);
         new ParagraphToolbar(this);
     }
 
     focus() {
-        let pBlock = this;
         if (this.view == undefined) {
             this.view = 'content';
-            pBlock.starterP.focus();
+            this.editEl.focus();
+            this.starterP = new DomEl('p');
+            this.starterP.innerHTML = '&nbsp;';
+            this.editEl.append(this.starterP);
+            this.starterP.focus();
+            document.execCommand('forwardDelete');
         } else if (this.view == 'content') {
             this.editEl.focus();
         } else {

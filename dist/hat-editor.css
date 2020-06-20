@@ -140,6 +140,9 @@
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer {
   border: solid 1px #ddd;
 }
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
+  margin: 2px 0;
+}
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].htmlView {
   background: #eee;
   font-family: monospace;
