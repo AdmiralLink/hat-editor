@@ -1,3 +1,7 @@
+# 0.2.0
+## NOTE
+- Went further down the custom road again, only to be stymied on some cross-browser stuff. It's clear at this point we should actually switch over to an editor library
+
 # 0.1.1
 ## NOTE
 - Did some cross-browser testing, and we are going to have fundamentally rethink how we're doing this. However, we don't have that kind of time right now.

@@ -128,6 +128,7 @@
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true] {
   min-height: 100px;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   position: relative;
   padding: 10px;
   width: 100%;

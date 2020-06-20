@@ -4165,15 +4165,49 @@
       }
   }
 
+  class SelectionWrapper {
+      constructor(tag, view) {
+          this.tag = tag;
+          let sel = window.getSelection();
+          if (sel.rangeCount) {
+              if (view == 'content') {
+                  switch (tag) {
+                      case 'strong':
+                          var badTag = 'b';
+                          var command = 'bold';
+                          break;
+                      case 'em':
+                          var badTag = 'i';
+                          var command = 'italic';
+                          break;
+                      case 'u':
+                          var badTag = false;
+                          var command = 'underline';
+                          break;
+                  } 
+                  if (!sel.isCollapsed) {
+                      document.execCommand(command);
+                      if (badTag && !sel.anchorNode.parentElement.classList.contains('editContainer')) {
+                          let badClose = '</' + badTag + '>';
+                          let goodClose = '</' + tag + '>';
+                          let badOpen = badClose.replace('/','');
+                          let goodOpen = goodClose.replace('/','');
+                          sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
+                      }
+                  }
+              } else {
+                  let range = sel.getRangeAt(0);
+                  document.execCommand('insertText', false, '<' + tag + '>' + range.toString() + '</' + tag + '>');
+              }
+          }
+      }
+  }
+
   class BrowserFormattingButton {
-      constructor(command, title, icon, tag, view) {
+      constructor(title, icon, tag, parentBlock) {
           let button = new DomButton(title, icon);
           button.addEventListener('click', function() {
-              if (view == 'content') {
-                  document.execCommand(command);
-              } else {
-                  new SelectionWrapper(tag);
-              }
+              new SelectionWrapper(tag, parentBlock.view);       
           });
           return button;
       }
@@ -4185,13 +4219,14 @@
           this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
           this.addFormattingButtons();
           this.addHtmlView();
+          this.fixKeyboardShortcuts();
           paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
       }
 
       addFormattingButtons() {
-          this.container.append(new BrowserFormattingButton('bold', 'Make selected text bold', 'bold', 'strong', this.parentBlock));
-          this.container.append(new BrowserFormattingButton('italic', 'Make selected text italic', 'italic', 'em', this.parentBlock));
-          this.container.append(new BrowserFormattingButton('underline', 'Make selected text underlined', 'underline', 'u', this.parentBlock));
+          this.container.append(new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock));
+          this.container.append(new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock));
+          this.container.append(new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock));
           //toolbar.container.append(new BrowserFormattingButton('insertOrderedList', 'Create ordered list', 'bold', ['ol', 'li']));
       }
 
@@ -4202,6 +4237,31 @@
               toolbar.toggleHtmlView();
           });
           toolbar.container.append(el);
+      }
+
+      fixKeyboardShortcuts() {
+          let parentBlock = this.parentBlock; 
+          this.parentBlock.contentContainer.addEventListener('keydown', function(e) {
+              if (e.ctrlKey || e.metaKey) {
+                  switch (e.keyCode) {
+                      case 66:
+                          case 98: 
+                          e.preventDefault();
+                          new SelectionWrapper('strong', parentBlock.view);
+                          return false;
+                      case 73:
+                      case 105: 
+                          e.preventDefault();
+                          new SelectionWrapper('em', parentBlock.view);
+                          return false;
+                      case 85:
+                      case 117: 
+                          e.preventDefault();
+                          new SelectionWrapper('u', parentBlock.view);
+                          return false;
+                  }
+              }
+          });
       }
 
       toggleHtmlView() {
@@ -4223,18 +4283,23 @@
   class ParagraphBlock extends Block {
       createElement() {
           this.el.classList.add('paragraph');
-          this.view = 'content';
           this.contentEl = new DomEl('div.contentContainer');
           this.editEl = new DomEl('div[contentEditable=true].editContainer');
           this.htmlEl = new DomEl('div.htmlView[contentEditable=true].flip');
           this.contentEl.appendChild(this.editEl);
+          this.starterP = new DomEl('p');
+          this.editEl.append(this.starterP);
           this.contentEl.appendChild(this.htmlEl);
           this.contentContainer.appendChild(this.contentEl);
           new ParagraphToolbar(this);
       }
 
       focus() {
-          if (this.view == 'content') {
+          let pBlock = this;
+          if (this.view == undefined) {
+              this.view = 'content';
+              pBlock.starterP.focus();
+          } else if (this.view == 'content') {
               this.editEl.focus();
           } else {
               this.htmlEl.focus();
@@ -4242,7 +4307,11 @@
       }
 
       getContent() {
-          return this.getHtmlFromContent();
+          if (this.view == 'content') {
+              return this.getHtmlFromContent();
+          } else {
+              return this.getContentFromHtml();
+          }
       }
 
       getHtmlFromContent() {

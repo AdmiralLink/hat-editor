@@ -1,16 +1,13 @@
 export default BrowserFormattingButton;
 
 import DomButton from './_DomButton.js';
+import SelectionWrapper from './_SelectionWrapper.js';
 
 class BrowserFormattingButton {
-    constructor(command, title, icon, tag, view) {
+    constructor(title, icon, tag, parentBlock) {
         let button = new DomButton(title, icon);
         button.addEventListener('click', function() {
-            if (view == 'content') {
-                document.execCommand(command);
-            } else {
-                new SelectionWrapper(tag);
-            }
+            new SelectionWrapper(tag, parentBlock.view);       
         });
         return button;
     }

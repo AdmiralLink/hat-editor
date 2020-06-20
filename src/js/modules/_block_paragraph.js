@@ -7,18 +7,23 @@ import ParagraphToolbar from './_paragraphToolbar.js';
 class ParagraphBlock extends Block {
     createElement() {
         this.el.classList.add('paragraph');
-        this.view = 'content';
         this.contentEl = new DomEl('div.contentContainer');
         this.editEl = new DomEl('div[contentEditable=true].editContainer');
         this.htmlEl = new DomEl('div.htmlView[contentEditable=true].flip');
         this.contentEl.appendChild(this.editEl);
+        this.starterP = new DomEl('p');
+        this.editEl.append(this.starterP);
         this.contentEl.appendChild(this.htmlEl);
         this.contentContainer.appendChild(this.contentEl);
         new ParagraphToolbar(this);
     }
 
     focus() {
-        if (this.view == 'content') {
+        let pBlock = this;
+        if (this.view == undefined) {
+            this.view = 'content';
+            pBlock.starterP.focus();
+        } else if (this.view == 'content') {
             this.editEl.focus();
         } else {
             this.htmlEl.focus();
@@ -26,7 +31,11 @@ class ParagraphBlock extends Block {
     }
 
     getContent() {
-        return this.getHtmlFromContent();
+        if (this.view == 'content') {
+            return this.getHtmlFromContent();
+        } else {
+            return this.getContentFromHtml();
+        }
     }
 
     getHtmlFromContent() {

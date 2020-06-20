@@ -4,6 +4,7 @@ import DomButton from './../lib/_DomButton.js';
 import DomEl from './../lib/_DomEl.js';
 import MiniModal from '../lib/_MiniModal.js';
 import BrowserFormattingButton from './../lib/_BrowserFormattingButton.js';
+import SelectionWrapper from '../lib/_SelectionWrapper.js';
 
 class ParagraphToolbar {
     constructor(paragraphBlock) {
@@ -11,13 +12,14 @@ class ParagraphToolbar {
         this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
         this.addFormattingButtons();
         this.addHtmlView();
+        this.fixKeyboardShortcuts();
         paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
     }
 
     addFormattingButtons() {
-        this.container.append(new BrowserFormattingButton('bold', 'Make selected text bold', 'bold', 'strong', this.parentBlock));
-        this.container.append(new BrowserFormattingButton('italic', 'Make selected text italic', 'italic', 'em', this.parentBlock));
-        this.container.append(new BrowserFormattingButton('underline', 'Make selected text underlined', 'underline', 'u', this.parentBlock));
+        this.container.append(new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock));
+        this.container.append(new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock));
+        this.container.append(new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock));
         //toolbar.container.append(new BrowserFormattingButton('insertOrderedList', 'Create ordered list', 'bold', ['ol', 'li']));
     }
 
@@ -28,6 +30,34 @@ class ParagraphToolbar {
             toolbar.toggleHtmlView();
         });
         toolbar.container.append(el);
+    }
+
+    fixKeyboardShortcuts() {
+        let parentBlock = this.parentBlock; 
+        this.parentBlock.contentContainer.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.keyCode) {
+                    case 66:
+                        case 98: 
+                        e.preventDefault();
+                        new SelectionWrapper('strong', parentBlock.view);
+                        return false;
+                        break;
+                    case 73:
+                    case 105: 
+                        e.preventDefault();
+                        new SelectionWrapper('em', parentBlock.view);
+                        return false;
+                        break;
+                    case 85:
+                    case 117: 
+                        e.preventDefault();
+                        new SelectionWrapper('u', parentBlock.view);
+                        return false;
+                        break;
+                }
+            }
+        });
     }
 
     toggleHtmlView() {
