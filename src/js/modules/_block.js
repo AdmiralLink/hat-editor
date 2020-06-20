@@ -2,7 +2,7 @@ export default Block;
 
 import DomEl from './../lib/_DomEl.js';
 import DomButton from './../lib/_DomButton.js';
-import MiniModal from './_miniModal.js';
+import MiniModal from './../lib/_MiniModal.js';
 
 class Block {
     constructor(hat) {

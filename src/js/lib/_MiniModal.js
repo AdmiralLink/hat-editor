@@ -1,7 +1,7 @@
 export default MiniModal;
 
-import DomEl from "../lib/_DomEl";
-import DomButton from "../lib/_DomButton";
+import DomEl from "./_DomEl";
+import DomButton from "./_DomButton";
 
 class MiniModal {
     constructor(content) {
