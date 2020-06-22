@@ -3704,7 +3704,7 @@
   class DomEl { 
       constructor(creationString) {
           this.elType = creationString.match(/^(\w+)*/g);
-          this.classes = creationString.match(/\.([^\s\.\#\[]*)/g);
+          this.classes = creationString.match(/\.(?![^[]*])([^\s\.\#\[]*)/g);
           this.id = creationString.match(/\#([^\s\.\[]*)/g);
           this.attributes = creationString.match(/\[([^\]]*)/g);
           if (this.elType) {
@@ -3737,7 +3737,7 @@
       }
   }
 
-  var Hat = function(containerEl) {
+  let Hat = function(containerEl) {
       let Blocks = [];
       let BlockCount = 0;
       let Elements = {
@@ -3820,7 +3820,9 @@
               var blockId = block.el.id;
               if (BlockCount > 1){
                   if (Blocks.hasOwnProperty(blockId)) {
-                      Blocks[block.el.previousSibling.id].focus();
+                      block.getPosition();
+                      let newFocus = (block.position.first) ? block.el.nextSibling.id : block.el.previousSibling.id;
+                      Blocks[newFocus].focus();
                       block.el.remove();
                       Blocks.splice(blockId);
                       BlockCount--;
@@ -3851,33 +3853,10 @@
   }
 
   class MiniModal {
-      constructor(content) {
-          this.options = {
-              cancelButtonClass: 'btnCancel',
-              cancelButtonText: 'Cancel',
-              cancelButtonTitle: 'Cancel action',
-              confirmButtonClass: 'btnConfirm',
-              confirmButtonText: 'OK',
-              confirmButtonTitle: 'Proceed with action',
-              closeOnBackgroundClick: true,
-              closeX: true,
-              confirm: false,
-              content: false,
-              contentType: 'text',
-              header: false,
-          };
-          if (typeof(content) == 'string') {
-              this.options.content = content;
-          } else {
-              for (let [key,value] of Object.entries(content)) {
-                  this.options[key] = value;
-              }
+      constructor(content, childClass=false) {
+          if (!childClass) {
+              return this.constructModal(content);
           }
-          this.buildModal();
-          this.addClickHandlers();
-          this.addKeyboardHandlers();
-          this.show();
-          return this.modalContainer;
       }
 
       addClickHandlers() {
@@ -3885,16 +3864,27 @@
           this.backgroundDiv.addEventListener('click', function() {
               modal.cancel();
           });
-          if (this.closeX) {
+          if (this.options.closeX) {
               this.closeBtn.addEventListener('click', function() {
                   modal.cancel();
               });
           }
-          this.cancelBtn.addEventListener('click', function() {
-              modal.cancel();        
-          });
+          if (this.options.confirm) {
+              this.cancelBtn.addEventListener('click', function() {
+                  modal.cancel();        
+              });
+          }
           this.confirmBtn.addEventListener('click', function() {
               modal.confirm();
+          });
+          this.modalContainer.addEventListener('keydown', function(e) {
+              let option = this.options;
+              if (e.keyCode == 13) {
+                  e.preventDefault();
+                  if (modal.options.enterConfirms) {
+                      modal.confirm();
+                  }
+              }
           });
       }
 
@@ -3907,9 +3897,29 @@
           });
       }
 
+      buildOptions(content) {
+          this.getDefaultOptions();
+          if (typeof(content) == 'string') {
+              this.options.content = content;
+          } else {
+              for (let [key,value] of Object.entries(content)) {
+                  this.options[key] = value;
+              }
+          }
+      }
+
       buildModal() {
           this.backgroundDiv = new DomEl('div.miniModal-background');
           this.modalContainer = new DomEl('div.miniModal-container');
+          if (this.options.modalClass) {
+              if (this.options.modalClass == 'string') {
+                  this.options.modalClass = [this.options.modalClass];
+              }
+              this.options.modalClass.forEach((className) => {
+                  this.backgroundDiv.classList.add(className);
+                  this.modalContainer.classList.add(className);
+              });
+          }
           this.header = new DomEl('div.modal-header');
           if (this.options.header) {
               let h2 = new DomEl('h2');
@@ -3924,6 +3934,8 @@
           this.modalContent = new DomEl('div.modal-content');
           if (this.options.contentType == 'text') {
               this.modalContent.innerText = this.options.content;
+          } else if (this.options.contentType == 'node') {
+              this.modalContent.append(this.options.content);
           } else {
               this.modalContent.innerHTML = this.options.content;
           }
@@ -3932,6 +3944,8 @@
           if (this.options.confirm) {
               this.cancelBtn = new DomButton(this.options.cancelButtonTitle, false, this.options.cancelButtonClass, this.options.cancelButtonText);
               buttonBar.append(this.cancelBtn);
+          } else {
+              buttonBar.style.textAlign = 'center';
           }
           this.confirmBtn = new DomButton(this.options.confirmButtonTitle, false, this.options.confirmButtonClass, this.options.confirmButtonText);
           buttonBar.append(this.confirmBtn);
@@ -3962,15 +3976,48 @@
           this.close();
       }
 
+      constructModal(content) {
+          this.buildOptions(content);
+          this.buildModal();
+          this.addClickHandlers();
+          this.addKeyboardHandlers();
+          this.show();
+          return this.modalContainer;
+      }
+
+      getDefaultOptions() {
+          this.options = {
+              cancelButtonClass: 'btnCancel',
+              cancelButtonText: 'Cancel',
+              cancelButtonTitle: 'Cancel action',
+              confirmButtonClass: 'btnConfirm',
+              confirmButtonText: 'OK',
+              confirmButtonTitle: 'Proceed with action',
+              closeOnBackgroundClick: true,
+              closeX: true,
+              confirm: false,
+              content: false,
+              contentType: 'text',
+              enterConfirms: true,
+              focusTarget: false,
+              header: false,
+              modalClass: false
+          };
+      }
+
       show() {
           document.body.append(this.backgroundDiv);
           document.body.append(this.modalContainer);
           this.backgroundDiv.classList.add('show');
           this.modalContainer.classList.add('show');
-          if (this.options.confirm) {
-              this.cancelBtn.focus();
+          if (this.options.focusTarget) {
+              this.options.focusTarget.focus();
           } else {
-              this.confirmBtn.focus();
+              if (this.options.confirm) {
+                  this.cancelBtn.focus();
+              } else {
+                  this.confirmBtn.focus();
+              }
           }
       }
   }
@@ -4247,22 +4294,314 @@
       }
   }
 
+  class ErrorModal extends MiniModal {
+      constructor(errorMessage) {
+          let errorDiv = new DomEl('div.error');
+          errorDiv.append(new DomEl('i.fas.fa-exclamation-circle'));
+          errorDiv.append(new DomEl('br'));
+          errorDiv.append(new DomEl('p').innerText = errorMessage);
+          super({
+              closeX: false,
+              confirmButtonClass: false,
+              contentType: 'node',
+              content: errorDiv,
+              header: 'Error',
+              special: 'super'
+          });
+      }
+  }
+
+  class Ajax {
+      constructor(url, data, progressBar) {
+          this.xhr = new XMLHttpRequest();
+          let fd = new FormData();
+          for (let [key,value] of Object.entries(data)) {
+              fd.append(key, value);
+          }
+          var xhr = new XMLHttpRequest();
+          if (progressBar) {
+              xhr.upload.addEventListener('progress', function(e) {
+                  progressBar.update( Math.round( (e.loaded * 100) /e.total) );
+              });
+          }
+          let eventEl = new DomEl('div');
+          xhr.responseType = 'json';
+          xhr.open('POST', url);
+          xhr.send(fd);
+          xhr.onerror = () => { new ErrorModal('An error occurred during upload.'); };
+          let ajax = this;
+          xhr.onreadystatechange = () => {
+              if (xhr.readyState === 4) {
+                  if (xhr.status === 200) {
+                      if (xhr.response.type == 'error') {
+                          new ErrorModal(xhr.response.message);
+                          ajax.throwError(eventEl, progressBar);
+                      } else {
+                          for (let [key, value] of Object.entries(xhr.response)) {
+                              eventEl.setAttribute(key, value);
+                          }
+                          if (progressBar) {
+                              progressBar.update(100);
+                          }
+                          eventEl.dispatchEvent(new Event('success'));
+                      }
+                  } else if (xhr.status == 410 || xhr.status === 404 || xhr.status == 403 || xhr.status === 401 ) {
+                      new ErrorModal(xhr.status + ', check your upload URL');
+                      ajax.throwError(eventEl, progressBar);
+                  } else if (xhr.status === 431 || xhr.status === 413) {
+                      new ErrorModal(xhr.status + ', check your server settings');
+                      ajax.throwError(eventEl, progressBar);
+                  } else {
+                      new ErrorModal('Upload returned a ' + xhr.status + ' error');
+                      ajax.throwError(eventEl, progressBar);
+                  }
+              }
+          };
+          return eventEl;
+      }
+
+      throwError(eventEl, progressBar) {
+          if (this.progressBar) {
+              progressBar.update('failure');
+          }
+          eventEl.dispatchEvent(new Event('failure'));
+      }
+  }
+
+  class InputField {
+      constructor(id, labelName, placeholder, type) {
+          type = type || 'text';
+          let inputString = 'input#' + id + '[name="' + id + '"][type="'+ type + '"]';
+          if (placeholder) {
+              inputString += '[placeholder="' + placeholder + '"]';
+          }
+          let input = new DomEl(inputString);
+          let label = new DomEl('label[for="' + id + '"]');
+          label.innerText = labelName;
+          label.append(input);
+          return label; 
+      }
+  }
+
+  class ProgressBar {
+      constructor(target, removeOnCompletion, type) {
+          this.type = type || 'Upload';
+          this.removeOnCompletion = removeOnCompletion;
+          let notificationId = 'progress' + new Date().getMilliseconds();
+          this.notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#' + notificationId);
+          this.notification.innerText = 'Press spacebar to get current value';
+          this.track = new DomEl('div.progressBar[tab-index=1][role=progressbar][aria-describedby=' + notificationId + '][aria-valuenow=0]');
+          let theBar = this;
+          this.track.addEventListener('keydown', function(e) {
+              if (e.keyCode == 32) {
+                  theBar.notify();
+              }
+          });
+          this.bar = new DomEl('div.bar[tab-index=0]');
+          this.track.append(this.bar);
+          target.append(this.track);
+          target.append(this.notification);
+      }
+
+      notify(num) {
+          if (num == 'failure') {
+              this.track.setAttribute('tab-index',0);
+              this.notification.innerText = this.type + ' failed';
+          } else if (num == 100) {
+              this.track.setAttribute('tab-index',0);
+              this.notification.innerText = this.type + ' Complete';
+              if (this.removeOnCompletion) {
+                  let theBar = this;
+                  setTimeout(() => { 
+                      theBar.track.remove();
+                      theBar.notification.remove(); 
+                  }, 500);
+              }
+          } else {
+              this.notification.innerText = num + '%';
+          }
+      }
+
+      update(num) {
+          this.bar.style.width = num + '%';
+          if (num == 100) {
+              this.bar.classList.add('done');
+              this.notify(num);
+          }
+      }
+  }
+
+  class ImageUploadModal extends MiniModal {
+      constructor() {
+          super(false, true);
+          this.uploading = false;
+          this.createElements();
+          this.addEvents();
+          this.constructModal(this.getModalOptions());
+      }
+
+      acceptFile(file) {
+          if (file) {
+              if (!file.type.match(/image.*/)) {
+                  new ErrorModal('File is not a valid image');
+              } else {    
+                  this.preview.src = window.URL.createObjectURL(file);
+                  this.fileData = file;
+                  if (!this.label.classList.contains('previewing')) {
+                      this.label.classList.add('previewing');
+                  }
+              }
+          }
+      }
+
+      addEvents() {
+          let uploadModal = this;
+          let label = this.label;
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+              label.addEventListener(eventName, function(e){e.preventDefault(); e.stopPropagation();}, false );
+          });
+          ['dragenter','dragover'].forEach(eventName => {
+              label.addEventListener(eventName, function(e){ label.classList.add('hovered');});
+          });
+          ['dragleave','drop'].forEach(eventName=> {
+              label.addEventListener(eventName, function(e) { label.classList.remove('hovered');});
+          });
+          this.label.addEventListener('keydown', function(e) {
+              if (e.keyCode == 13) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  this.click();
+              }
+          });
+          this.form.addEventListener('keydown', function(e) {
+              if (e.keyCode == 13) {
+                  uploadModal.confirm();
+              }
+          });
+          this.input.addEventListener('change', function(e) {
+              uploadModal.acceptFile(this.files[0]);
+          });
+          label.addEventListener('drop', function(e) {
+              uploadModal.acceptFile(e.dataTransfer.files[0]);
+          });
+      }
+
+      confirm() {
+          if (!this.uploading) {
+              this.uploading = true;
+              if (HatRack.options.imageUploadUrl) {
+                  let url = HatRack.options.imageUploadUrl;
+                  if (this.fileData && this.altText.value) {
+                      let data = {
+                          image: this.fileData,
+                          altText: this.altText.value
+                      };
+                      this.form.style.display = 'none';
+                      let bar = new ProgressBar(this.modalContent);
+                      let upload = new Ajax(url, data, bar);
+                      upload.addEventListener('success', (e) => {
+                          bar.track.classList.add('success');
+                          this.imageEl = new DomEl('img[src=' + e.target.getAttribute('imageUrl') + '][alt=' + e.target.getAttribute('altText') + ']');
+                          this.modalContainer.dispatchEvent(new Event('uploaded'));
+                          this.close();
+                      });
+                      upload.addEventListener('failure', (e) => {  
+                          bar.track.classList.add('failure');
+                          this.uploading = false;
+                          bar.track.remove();
+                          this.form.style.display = 'block';
+                      });
+                  } else {
+                      new ErrorModal('You must have both an image and alt text to upload');
+                      this.uploading = false;
+                  }
+              } else {
+                  new ErrorModal('Upload URL is not set');
+                  this.uploading = false;
+              }
+          }
+      }
+
+      createElements() {
+          this.fileData = false;
+          this.form = new DomEl('div#imageUpload');
+          this.input = new DomEl('input[type=file][name="uploader"]#uploader');
+          let span = new DomEl('span');
+          span.innerText = 'Click here to browse or drop the image you want to upload';
+          let icon = new DomEl('i.fas.fa-file-image');
+          this.label = new DomEl('label.imageUploader[for="uploader"][tab-index="1"][title="Hit enter to browse for an image to upload"]');
+          this.preview = new DomEl('img.preview'); 
+          this.label.append(icon);
+          this.label.append(this.preview);
+          this.label.append(document.createElement('br'));
+          this.label.append(span);
+          this.label.append(this.input);
+          this.form.append(this.label);
+          let altLabel = new InputField('altText','Alternative text for accessibility','A description of the photo');
+          this.form.append(altLabel);
+          this.altText = altLabel.children[0];
+      }
+
+      getModalOptions() {
+          return {
+              contentType: 'node',
+              content: this.form,
+              confirm: true,
+              enterConfirms: false,
+              focusTarget: this.label,
+          };
+      }
+  }
+
   class ParagraphToolbar {
       constructor(paragraphBlock) {
           this.parentBlock = paragraphBlock;
           this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
           this.addFormattingButtons();
           this.addHeaderButton();
+          this.addImageButton();
           this.addHtmlView();
+          this.addFocusShield();
           paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
       }
 
+      addFocusShield() {
+          let toolbar = this;
+          var timeout = false; 
+          this.parentBlock.contentContainer.addEventListener('focusin', function() {
+              if (timeout) {
+                  clearTimeout(timeout);
+              }
+              toolbar.contextButtons.forEach(el => {
+                  el.removeAttribute('disabled');
+              });
+          });
+          this.parentBlock.contentContainer.addEventListener('focusout', function() {
+              /* Focusout will detect child focus outs (good), but even if we switch to another child, e.g., a button.
+              We therefore check if the container contains the active element; if not, that means we disable the buttons.
+              But focusout fires before the next focusin, so we delay slightly */
+              timeout = setTimeout(function() {
+                  if (!toolbar.parentBlock.contentContainer.contains(document.activeElement)) {
+                      toolbar.contextButtons.forEach(el => {
+                          el.setAttribute('disabled', 'disabled');
+                      });
+                  }
+              }, 1);
+          });
+      }
+
       addFormattingButtons() {
-          this.container.append(new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock));
-          this.container.append(new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock));
-          this.container.append(new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock));
-          this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ul', ['ul', 'li'], this.parentBlock));
-          this.container.append(new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock));
+          let bold = new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock);
+          this.container.append(bold);
+          let italic = new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock);
+          this.container.append(italic);
+          let underline = new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock);
+          this.container.append(underline);
+          let ul = new BrowserFormattingButton('Create ordered list', 'list-ul', ['ul', 'li'], this.parentBlock);
+          this.container.append(ul);
+          let ol = new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock);
+          this.container.append(ol);
+          this.contextButtons = [bold, italic, underline, ul, ol];
       }
 
       addHeaderButton() {
@@ -4272,6 +4611,7 @@
               btn.addEventListener('click', function() {
                   new SelectionWrapper(header, toolbar.parentBlock.view);
               });
+              toolbar.contextButtons.push(btn);
               toolbar.container.append(btn);
           });
       }
@@ -4285,6 +4625,36 @@
           toolbar.container.append(el);
       }
 
+      addImage() {
+          let sel = window.getSelection();
+          let range = sel.getRangeAt(0);
+          let image = new ImageUploadModal();
+          let toolbar = this;
+          image.modalContainer.addEventListener('uploaded', (e) => {
+              if (toolbar.parentBlock.view == 'content') {
+                  toolbar.parentBlock.contentEl.focus();
+                  sel.removeAllRanges();
+                  sel.addRange(range);
+                  document.execCommand('insertHTML', false, image.imageEl.outerHTML);
+              } else {
+                  toolbar.parhtmlEl.focus();
+                  sel.removeAllRanges();
+                  sel.addRange(range);
+                  document.execCommand('insertText', false, image.imageEl.outerHTML);
+              }
+          });
+      }
+
+      addImageButton() {
+          let toolbar = this;
+          let el = new DomButton('Insert image', 'image');
+          el.addEventListener('click', function() {
+              toolbar.addImage();
+          });
+          this.contextButtons.push(el);
+          toolbar.container.append(el);
+      }
+
       toggleHtmlView() {
           if (this.parentBlock.view == 'content') {
               let code = this.parentBlock.getHtmlFromContent();
@@ -4293,6 +4663,13 @@
           } else {
               let html = this.parentBlock.getContentFromHtml();
               this.parentBlock.editEl.innerHTML = html;
+              if (this.parentBlock.editEl.children) {
+                  for (let el of this.parentBlock.editEl.children) {
+                      if (!el.innerHTML) {
+                          el.innerHTML = '<br>';
+                      }
+                  }
+              }
               this.parentBlock.view = 'content';
           }
           this.parentBlock.editEl.classList.toggle('flip');
@@ -4310,7 +4687,7 @@
           this.contentEl.appendChild(this.editEl);
           this.contentEl.appendChild(this.htmlEl);
           this.contentContainer.appendChild(this.contentEl);
-          new ParagraphToolbar(this);
+          this.toolbar = new ParagraphToolbar(this);
       }
 
       focus() {
@@ -4346,11 +4723,14 @@
           if (e.ctrlKey || e.metaKey) {
               if (e.shiftKey) {
                   switch(e.keyCode) {
+                      case 79:
+                          new SelectionWrapper(['ol', 'li'], this.view);
+                          break;
                       case 85:
                           new SelectionWrapper(['ul','li'], this.view);
                           break;
-                      case 79:
-                          new SelectionWrapper(['ol', 'li'], this.view);
+                      case 73:
+                          this.toolbar.addImage();
                           break;
                       case 49:
                           new SelectionWrapper('h1', this.view);
@@ -4382,13 +4762,12 @@
                       e.preventDefault();
                       new SelectionWrapper('u', this.view);
                       return false;
-                  
               }
           }
       }
   }
 
-  window.HatRack = function() {
+  window.HatRack = function(querySelector, options) {
       let EditorRegistry = {
           add: function(hatInstance) {
               this.editors[hatInstance.getContainer()] = hatInstance;
@@ -4428,8 +4807,10 @@
               BlockRegistry.names.push(slug);
               BlockRegistry.objects[slug] = blockObj;
           },
-          start: function(querySelector='.hat-editor') {
-              for (var el of document.querySelectorAll(querySelector)) {
+          start: function(querySelector, options) {
+              let query = querySelector || '.hat-editor';
+              Interface.options = options || {};
+              for (var el of document.querySelectorAll(query)) {
                   EditorRegistry.add(new Hat(el));
               }
           }

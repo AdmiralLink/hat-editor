@@ -3,7 +3,7 @@ export default DomEl;
 class DomEl { 
     constructor(creationString) {
         this.elType = creationString.match(/^(\w+)*/g);
-        this.classes = creationString.match(/\.([^\s\.\#\[]*)/g);
+        this.classes = creationString.match(/\.(?![^[]*])([^\s\.\#\[]*)/g);
         this.id = creationString.match(/\#([^\s\.\[]*)/g);
         this.attributes = creationString.match(/\[([^\]]*)/g);
         if (this.elType) {

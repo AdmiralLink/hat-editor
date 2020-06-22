@@ -1,4 +1,5 @@
 # Hat-Editor  
+![Hat Editor](hat.png)
 A rich-text editor for the rest of us
 
 ## Features
@@ -20,19 +21,20 @@ Hat is designed to be stable - the core will likely only be updated to fix probl
 * Hat does use Sortable.js, but that's the for the block-arranging part, not the text editor part 
 
 ## Who is this for?  
-Me. My specific needs. If it's useful to anyone else, I'm thrilled to let you use the code and to modify it if you want. However, be aware that the number of people who use it is not really a concern of mine.
+Me. My specific needs. If it's useful to anyone else, I'm thrilled to let you use the code and/or modify it if you want. However, be aware that the number of people who use it is not really a concern of mine.
 
 Generally, if you want to create content **for the web**, it might be useful. If you want to use the same content for your apps, you're either going to have convert the HTML or use a WebView. 
 
 ## Feature Requests/Bug Reports  
 I will gladly fix all accessibility-related bugs. 
 
-I will happily fix all normal use-case bugs. I am not interested in tracking down theoretical or extreme-edge-case bugs, because I don't care about them. If it can be reproduced and is a thing I think should be fixed, I'll fix it. If not, you're more than welcome to fork it and go on your merry wa.
+I will happily fix all normal use-case bugs. I am not interested in tracking down theoretical or extreme-edge-case bugs, because I don't care about them. If it can be reproduced and is a thing I think should be fixed, I'll fix it. If not, you're more than welcome to fork it and go on your merry way.
 
 I will implement feature requests I think are useful. I will be more likely to implement feature requests that come with pull requests, but I'm not going to implement something just because it has a PR. See above re:forking.
 
 ## Usage
 
+The basics for handling image uploads cna be found in upload.php
 
 ## Keyboard shortcuts
 ### Global
@@ -43,22 +45,23 @@ I will implement feature requests I think are useful. I will be more likely to i
 - `⌘\ctrl` + `b`: Bold  
 - `⌘\ctrl` + `i`: Italicize  
 - `⌘\ctrl` + `u`: Underline  
-- `⌘\ctrl` + `k`: Create/edit link  
-- `⌘\ctrl` + `shift` + `u`: Unordered List
+- `⌘\ctrl` + `k`: Create/edit link
+- `⌘\ctrl` + `shift` + `i`: Insert image  
 - `⌘\ctrl` + `shift` + `o`: Ordered List
+- `⌘\ctrl` + `shift` + `u`: Unordered List
 - `⌘\ctrl` + `shift` + `1`: H1
 - `⌘\ctrl` + `shift` + `2`: H2
 - `⌘\ctrl` + `shift` + `3`: H3
-- `⌘\ctrl` + `shift` + `4`: H4  
+- `⌘\ctrl` + `shift` + `4`: H4 
 
 ## Other editors
 (Note: Effort level is a subjective measure of "would it take me longer to implement this than to write my own from scratch"?)
 
-| Editor | RichText | A11y | Dependency-free | Lightweight | Output | Effort
+| Editor | RichText | A11y | Dependency-free | Lightweight | Output | Low-Effort
 |-|-|-|-|-|-|
 | TinyMCE | ✔️ | ✔️ | ✔️ | ❌ | ✔️ | ❌ |
 | CKEditor | ✔️ | ✔️ | ✔️ | ❌ | ✔️ | ❌ |
 | Quill | ✔️ | ❌ | ✔️ | ✔️ | ❌ | ✔️ |
 | Slate | ✔️ | ❓ | ❌ | ❌ | ✔️ | ✔️ |
 | Draft.js | ✔️ | ❓ | ❌ | ✔️ | ❌ | ✔️ |
-| ProseMirror | ✔️ | ❓ | ✔️ | ❓ | ❌ | ✔️ |
+| ProseMirror | ✔️ | ❓ | ✔️ | ❓ | ❌ | ✔️ | 

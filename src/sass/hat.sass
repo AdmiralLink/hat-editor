@@ -1,6 +1,43 @@
 $red: #B11
 $green: #171
     
+.sr-only
+    width: 1px
+    height: 1px
+    overflow: hidden
+    text-indent: -10000px
+.progressBar
+    width: 90%
+    margin: 20px auto
+    height: 25px
+    position: relative
+    &:before
+        content: 'Uploading ...'
+        text-transform: uppercase
+        position: absolute
+        display: block
+        color: #666
+        left: 50%
+        top: 50%
+        font-size: 20px
+        transform: translate(-50%, -50%)
+    .bar
+        height: 100%
+        width: 0
+        transition: width 0.2s, background 0.3s
+        background: #666
+    &.success
+        &:before
+            content: 'Uploaded!'
+            color: white
+        .bar
+            background: $green
+    &.failure
+        &:before
+            content: 'Upload failed'  
+            color: white
+        .bar
+            background: $red
 .hat-editor
     box-sizing: border-box
     font-size: 18px
@@ -109,11 +146,14 @@ $green: #171
                     &.textBtn
                         font-size: 10px
                         text-transform: uppercase
-                        padding: 7px 5px
+                        padding: 8px 5px
                         font-weight: bold
                         top: -3px
                         position: relative
-                        margin-bottom: -3px
+                        margin-bottom: -4px
+                    &[disabled]
+                        color: #ccc
+                        cursor: not-allowed
             position: relative
             .contentContainer
                 position: relative
@@ -165,6 +205,8 @@ $green: #171
                             margin: 2px 0
                             &::before
                                 content: 'p'
+                        img
+                            max-width: 100%
                     &.htmlView
                         background: #eee
                         font-family: monospace
@@ -181,10 +223,12 @@ $green: #171
     top: 0
     width: 100vw
     height: 100vh
-    background: rgba(0,0,0,0.2)
+    background: rgba(0,0,0,0.35)
     z-index: 299
     opacity: 0
     transition: opacity 0.3s
+    &.super
+        z-index: 998
     &.show
         opacity: 1
         transition: opacity 0.4s
@@ -200,6 +244,78 @@ $green: #171
     z-index: 300
     opacity: 0
     transition: opacity 0.3s
+    box-shadow: 0 0 7px 2px rgba(0, 0, 0, 0.6)
+    &.super
+        z-index: 999
+    div.error
+        text-align: center
+        svg
+            color: $red
+            font-size: 45px
+            margin-bottom: 15px
+    div#imageUpload
+        label
+            font-weight: bold
+            font-size: 14px
+            display: block
+            margin: 10px 5px
+            input
+                &[type="text"]
+                    display: block
+                    font-size: 16px
+                    padding: 3px
+                    margin: 2px 0
+                    width: 80%
+            &.imageUploader
+                display: block
+                background: #eee
+                padding: 15px 10px
+                text-align: center
+                text-decoration: none
+                color: black
+                font-weight: bold
+                cursor: pointer
+                transition: transform 0.4s, box-shadow 0.4s
+                border: 4px dashed #ccc
+                border-radius: 10px
+                &.hovered 
+                    transform: scale(1.05)
+                    transition: transform 0.4s, box-shadow 0.4s
+                    box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35)
+                &.previewing
+                    svg, span
+                        display: none
+                    img.preview
+                        display: block
+                svg
+                    font-size: 30px
+                    margin-bottom: 10px
+                .preview
+                    display: none
+                    width: auto
+                    max-width: 100%
+                    max-height: 300px
+                    height: auto
+                    margin: 10px auto
+                input
+                    &[type="file"]
+                        width: 0.1px
+                        height: 0.1px
+                        opacity: 0
+                        overflow: hidden
+                        position: absolute
+                        z-index: -1
+    .closeBtn
+        box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.2)
+        background: $red
+        color: white
+        border: none
+        border-radius: 50%
+        padding: 5px 6px
+        position: absolute
+        right: -12px
+        top: -12px
+        cursor: pointer
     &.show
         opacity: 1
         transition: opacity 0.55s
@@ -215,28 +331,10 @@ $green: #171
             font-size: 16px
             background: #ccc
             border: 0
-            &.confirmBtn
+            margin: 0 auto
+            &.btnConfirm
                 background: $green
                 color: white
             &.deleteBtn
                 background: $red
                 color: white
-
-
-
-@-webkit-keyframes flip-diagonal-2-br
-    0%
-        -webkit-transform: rotate3d(-1, 1, 0, 0deg)
-        transform: rotate3d(-1, 1, 0, 0deg)
-    100%
-        -webkit-transform: rotate3d(-1, 1, 0, 180deg)
-        transform: rotate3d(-1, 1, 0, 180deg)
-@keyframes flip-diagonal-2-br
-    0%
-        -webkit-transform: rotate3d(-1, 1, 0, 0deg) 
-        transform: rotate3d(-1, 1, 0, 0deg)
-        position: relative
-    100%
-        -webkit-transform: rotate3d(-1, 1, 0, 180deg)
-        transform: rotate3d(-1, 1, 0, 180deg)
-        position: absolute

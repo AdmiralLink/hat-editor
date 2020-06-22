@@ -8,12 +8,13 @@
     <link rel="stylesheet" href="dist/hat-editor.css">
     <script src="dist/hat.js"></script>
 </head>
-<body style="background: #444;">
-    <div class="hat-editor">
+<body style="background: white;">
+    <img src="hat.png" style="margin: 10px auto; display: block; width: 300px; max-width: 100%;" />
+    <div class="hat-editor" style="max-width: 1000px; margin: 0 auto;">
         
     </div>
     <script>
-        HatRack.start();
+        HatRack.start(false, {imageUploadUrl: 'http://localhost/upload.php'});
     </script>
 </body>
 </html>

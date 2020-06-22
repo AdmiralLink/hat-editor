@@ -2,7 +2,7 @@ export default Hat;
 import Sortable from './../lib/_Sortable.js';
 import DomEl from './../lib/_DomEl.js';
 
-var Hat = function(containerEl) {
+let Hat = function(containerEl) {
     let Blocks = [];
     let BlockCount = 0;
     let Elements = {
@@ -85,7 +85,9 @@ var Hat = function(containerEl) {
             var blockId = block.el.id;
             if (BlockCount > 1){
                 if (Blocks.hasOwnProperty(blockId)) {
-                    Blocks[block.el.previousSibling.id].focus();
+                    block.getPosition();
+                    let newFocus = (block.position.first) ? block.el.nextSibling.id : block.el.previousSibling.id;
+                    Blocks[newFocus].focus();
                     block.el.remove();
                     Blocks.splice(blockId);
                     BlockCount--;

@@ -1,3 +1,21 @@
+# 0.3.1
+## ADDED
+- js\lib: ErrorModal, Ajax, ImageUploadModal (no library support), inputField, ProgressBar
+- Upload.php example 
+- BrowserFormattingButton (for ParagraphToolbar)
+- modalClass option in MiniModal to apply to background/modal (for z-index purposes, mainly, but also for whole-modal styling)
+- FocusShield for paragraph block (if you're not focused on a content editing plane, you can't use any of the content buttons)
+- HatRack now assk for querySelector and options as constructor argument 
+- Hat logo  
+## MODIFIED
+- Fixed bugs in MiniModal (no functionality changes, just getting it to work as expected)
+- Refactored MiniModal class structure to allow for easier extending
+- MiniModal buttons now auto center
+- When switching from HTML to Edit view, innerHTML is modified so you can get inside empty elements
+- Fixed bug when deleting first block (when multiple blocks exist)
+- Fixed bug in DomEl where periods inside attributes would be grabbed as partial classes and the whole thing would eat it
+
+
 # 0.3.0
 ## ADDED
 - Readme

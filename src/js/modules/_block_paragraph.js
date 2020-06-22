@@ -15,7 +15,7 @@ class ParagraphBlock extends Block {
         this.contentEl.appendChild(this.editEl);
         this.contentEl.appendChild(this.htmlEl);
         this.contentContainer.appendChild(this.contentEl);
-        new ParagraphToolbar(this);
+        this.toolbar = new ParagraphToolbar(this);
     }
 
     focus() {
@@ -51,11 +51,14 @@ class ParagraphBlock extends Block {
         if (e.ctrlKey || e.metaKey) {
             if (e.shiftKey) {
                 switch(e.keyCode) {
+                    case 79:
+                        new SelectionWrapper(['ol', 'li'], this.view);
+                        break;
                     case 85:
                         new SelectionWrapper(['ul','li'], this.view);
                         break;
-                    case 79:
-                        new SelectionWrapper(['ol', 'li'], this.view);
+                    case 73:
+                        this.toolbar.addImage();
                         break;
                     case 49:
                         new SelectionWrapper('h1', this.view);
@@ -90,7 +93,6 @@ class ParagraphBlock extends Block {
                     new SelectionWrapper('u', this.view);
                     return false;
                     break;
-                
             }
         }
     }

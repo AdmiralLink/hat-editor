@@ -1,3 +1,48 @@
+.sr-only {
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  text-indent: -10000px;
+}
+
+.progressBar {
+  width: 90%;
+  margin: 20px auto;
+  height: 25px;
+  position: relative;
+}
+.progressBar:before {
+  content: "Uploading ...";
+  text-transform: uppercase;
+  position: absolute;
+  display: block;
+  color: #666;
+  left: 50%;
+  top: 50%;
+  font-size: 20px;
+  transform: translate(-50%, -50%);
+}
+.progressBar .bar {
+  height: 100%;
+  width: 0;
+  transition: width 0.2s, background 0.3s;
+  background: #666;
+}
+.progressBar.success:before {
+  content: "Uploaded!";
+  color: white;
+}
+.progressBar.success .bar {
+  background: #171;
+}
+.progressBar.failure:before {
+  content: "Upload failed";
+  color: white;
+}
+.progressBar.failure .bar {
+  background: #B11;
+}
+
 .hat-editor {
   box-sizing: border-box;
   font-size: 18px;
@@ -132,11 +177,15 @@
 .hat-editor .block.paragraph .toolbar button.textBtn {
   font-size: 10px;
   text-transform: uppercase;
-  padding: 7px 5px;
+  padding: 8px 5px;
   font-weight: bold;
   top: -3px;
   position: relative;
-  margin-bottom: -3px;
+  margin-bottom: -4px;
+}
+.hat-editor .block.paragraph .toolbar button[disabled] {
+  color: #ccc;
+  cursor: not-allowed;
 }
 .hat-editor .block.paragraph .contentContainer {
   position: relative;
@@ -204,6 +253,9 @@
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p::before {
   content: "p";
 }
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer img {
+  max-width: 100%;
+}
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].htmlView {
   background: #eee;
   font-family: monospace;
@@ -224,10 +276,13 @@
   top: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.35);
   z-index: 299;
   opacity: 0;
   transition: opacity 0.3s;
+}
+.miniModal-background.super {
+  z-index: 998;
 }
 .miniModal-background.show {
   opacity: 1;
@@ -246,6 +301,87 @@
   z-index: 300;
   opacity: 0;
   transition: opacity 0.3s;
+  box-shadow: 0 0 7px 2px rgba(0, 0, 0, 0.6);
+}
+.miniModal-container.super {
+  z-index: 999;
+}
+.miniModal-container div.error {
+  text-align: center;
+}
+.miniModal-container div.error svg {
+  color: #B11;
+  font-size: 45px;
+  margin-bottom: 15px;
+}
+.miniModal-container div#imageUpload label {
+  font-weight: bold;
+  font-size: 14px;
+  display: block;
+  margin: 10px 5px;
+}
+.miniModal-container div#imageUpload label input[type=text] {
+  display: block;
+  font-size: 16px;
+  padding: 3px;
+  margin: 2px 0;
+  width: 80%;
+}
+.miniModal-container div#imageUpload label.imageUploader {
+  display: block;
+  background: #eee;
+  padding: 15px 10px;
+  text-align: center;
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.4s, box-shadow 0.4s;
+  border: 4px dashed #ccc;
+  border-radius: 10px;
+}
+.miniModal-container div#imageUpload label.imageUploader.hovered {
+  transform: scale(1.05);
+  transition: transform 0.4s, box-shadow 0.4s;
+  box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35);
+}
+.miniModal-container div#imageUpload label.imageUploader.previewing svg, .miniModal-container div#imageUpload label.imageUploader.previewing span {
+  display: none;
+}
+.miniModal-container div#imageUpload label.imageUploader.previewing img.preview {
+  display: block;
+}
+.miniModal-container div#imageUpload label.imageUploader svg {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+.miniModal-container div#imageUpload label.imageUploader .preview {
+  display: none;
+  width: auto;
+  max-width: 100%;
+  max-height: 300px;
+  height: auto;
+  margin: 10px auto;
+}
+.miniModal-container div#imageUpload label.imageUploader input[type=file] {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+.miniModal-container .closeBtn {
+  box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.2);
+  background: #B11;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 5px 6px;
+  position: absolute;
+  right: -12px;
+  top: -12px;
+  cursor: pointer;
 }
 .miniModal-container.show {
   opacity: 1;
@@ -265,35 +401,13 @@
   font-size: 16px;
   background: #ccc;
   border: 0;
+  margin: 0 auto;
 }
-.miniModal-container .modal-buttons button.confirmBtn {
+.miniModal-container .modal-buttons button.btnConfirm {
   background: #171;
   color: white;
 }
 .miniModal-container .modal-buttons button.deleteBtn {
   background: #B11;
   color: white;
-}
-
-@-webkit-keyframes flip-diagonal-2-br {
-  0% {
-    -webkit-transform: rotate3d(-1, 1, 0, 0deg);
-    transform: rotate3d(-1, 1, 0, 0deg);
-  }
-  100% {
-    -webkit-transform: rotate3d(-1, 1, 0, 180deg);
-    transform: rotate3d(-1, 1, 0, 180deg);
-  }
-}
-@keyframes flip-diagonal-2-br {
-  0% {
-    -webkit-transform: rotate3d(-1, 1, 0, 0deg);
-    transform: rotate3d(-1, 1, 0, 0deg);
-    position: relative;
-  }
-  100% {
-    -webkit-transform: rotate3d(-1, 1, 0, 180deg);
-    transform: rotate3d(-1, 1, 0, 180deg);
-    position: absolute;
-  }
 }
