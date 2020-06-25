@@ -1,3 +1,7 @@
+# 0.3.4
+## MODIFIED
+- Updated readme to include indent/outdent shortcuts
+
 # 0.3.3
 ## ADDED
 - Paragraph Button
