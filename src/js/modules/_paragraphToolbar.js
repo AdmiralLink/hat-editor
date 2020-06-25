@@ -1,10 +1,12 @@
 export default ParagraphToolbar;
 
-import BrowserFormattingButton from './../lib/_BrowserFormattingButton.js';
-import DomButton from './../lib/_DomButton.js';
-import DomEl from './../lib/_DomEl.js';
-import ImageUploadModal from '../lib/_ImageUploadModal.js';
-import SelectionWrapper from '../lib/_SelectionWrapper.js';
+import BrowserFormattingButton from './../lib/_BrowserFormattingButton';
+import debounce from './../lib/_Debounce';
+import DomButton from './../lib/_DomButton';
+import DomEl from './../lib/_DomEl';
+import ImageUploadModal from './_ImageUploadModal';
+import LinkModal from './_LinkModal';
+import SelectionWrapper from '../lib/_SelectionWrapper';
 
 class ParagraphToolbar {
     constructor(paragraphBlock) {
@@ -13,6 +15,8 @@ class ParagraphToolbar {
         this.addFormattingButtons();
         this.addHeaderButton();
         this.addImageButton();
+        this.addLinkButton();
+        this.addUnlinkButton();
         this.addHtmlView();
         this.addFocusShield();
         paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
@@ -78,23 +82,68 @@ class ParagraphToolbar {
         toolbar.container.append(el);
     }
 
+    addLink() {
+        let targetLink = false;
+        let sel = window.getSelection();
+        let range = sel.getRangeAt(0);
+        let options = {
+            text: range.toString()
+        };
+        let anchorEl = sel.anchorNode.parentElement;
+        let focusEl = sel.focusNode.parentElement;
+        if (this.parentBlock.view == 'content') {
+            if (sel.isCollapsed && anchorEl.tagName.toLowerCase() == 'a') {
+                options.href = anchorEl.getAttribute('href');
+                options.blank = (anchorEl.getAttribute('target') == '_blank');
+                options.text = anchorEl.innerText;
+                options.updateExisting = true;
+            } else if (anchorEl == focusEl && anchorEl.tagName.toLowerCase() == 'a') {
+                options.href = anchorEl.getAttribute('href');
+                options.blank = (anchorEl.getAttribute('target') == '_blank');
+            } else if (this.checkForAnchorTag()) {
+                let theTag = this.checkForAnchorTag();
+                options.href = theTag.getAttribute('href');
+                options.blank = (theTag.getAttribute('target') == '_blank');
+            }
+        }
+        let link = new LinkModal(options);
+        let toolbar = this;
+        link.modalContainer.addEventListener('confirmed', (e) => {
+            toolbar.returnCursor(sel, range);
+            let values = link.values;
+            if (link.updateExisting) {
+                let theLink = sel.anchorNode.parentElement;
+                theLink.setAttribute('href', values.href);
+                if (options.blank && theLink.getAttribute('target') !== '_blank') {
+                    theLink.setAttribute('target', '_blank')
+                } else if ( !options.blank && theLink.getAttribute('target') == '_blank') {
+                    theLink.setAttribute('target', '');
+                }
+                theLink.innerText = values.text;
+                return true;
+            }
+            new SelectionWrapper('a', toolbar.parentBlock.view, values);
+        });
+        link.modalContainer.addEventListener('canceled', (e) => {
+            toolbar.returnCursor(sel, range);
+        });
+    }
+
     addImage() {
         let sel = window.getSelection();
         let range = sel.getRangeAt(0);
         let image = new ImageUploadModal();
         let toolbar = this;
         image.modalContainer.addEventListener('uploaded', (e) => {
+            toolbar.returnCursor(sel, range);
             if (toolbar.parentBlock.view == 'content') {
-                toolbar.parentBlock.contentEl.focus();
-                sel.removeAllRanges();
-                sel.addRange(range);
                 document.execCommand('insertHTML', false, image.imageEl.outerHTML);
             } else {
-                toolbar.parhtmlEl.focus();
-                sel.removeAllRanges();
-                sel.addRange(range);
                 document.execCommand('insertText', false, image.imageEl.outerHTML);
             }
+        });
+        image.modalContainer.addEventListener('canceled', (e) => {
+            toolbar.returnCursor(sel, range);
         });
     }
 
@@ -106,6 +155,83 @@ class ParagraphToolbar {
         });
         this.contextButtons.push(el);
         toolbar.container.append(el);
+    }
+
+    addLinkButton() {
+        let toolbar = this;
+        let el = new DomButton('Insert Link', 'link');
+        el.addEventListener('click', function() {
+            toolbar.addLink();
+        });
+        this.contextButtons.push(el);
+        toolbar.container.append(el);
+    }
+
+    addUnlinkButton() {
+        let toolbar = this;
+        this.unlinkBtn = new DomButton('Unlink text', 'unlink');
+        this.parentBlock.editEl.addEventListener('focus', () => {
+            toolbar.checkForLink();
+        });
+        this.parentBlock.editEl.addEventListener('viewChange', () => {
+            toolbar.checkForLink();
+        });
+        this.parentBlock.editEl.addEventListener('keydown', () => {
+            toolbar.debounceLinkCheck();
+        });
+        this.unlinkBtn.addEventListener('click', function() {
+            toolbar.unlink();
+        });
+        toolbar.container.append(this.unlinkBtn);
+    }
+
+    checkForAnchorTag() {
+        if (!sel) {
+            var sel = window.getSelection();
+        }
+        if (!range) {
+            var range = sel.getRangeAt(0);
+        }
+        let contents = range.cloneContents();
+        for (let theNode of contents.children) {
+            if (theNode.tagName.toLowerCase() == 'a') {
+                return theNode;
+            }
+        }
+        return false;
+    }
+
+    checkForLink() {
+        let linkFound = false;
+        let sel = window.getSelection();
+        let range = sel.getRangeAt(0);
+        if (sel.anchorNode.parentElement.tagName.toLowerCase() == 'a' || sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
+            linkFound = true;
+        } else {
+            if (this.checkForAnchorTag()) {
+                linkFound = true;
+            }
+        }
+        if (linkFound) {
+            this.unlinkBtn.removeAttribute('disabled');  
+        } else {
+            this.unlinkBtn.setAttribute('disabled', true);
+        }
+    }
+
+    debounceLinkCheck = debounce(() => {
+        this.checkForLink();
+    }, 350);
+
+    returnCursor(sel, range) {
+        if (this.parentBlock.view == 'content') { 
+            this.parentBlock.editEl.focus();
+        } else {
+            this.parentBlock.htmlEl.focus();
+        }
+        sel.removeAllRanges();
+        sel.addRange(range);
+        this.checkForLink();
     }
 
     toggleHtmlView() {
@@ -127,6 +253,28 @@ class ParagraphToolbar {
         }
         this.parentBlock.editEl.classList.toggle('flip');
         this.parentBlock.htmlEl.classList.toggle('flip');
+        this.parentBlock.dispatchEvent('viewChange');
         this.parentBlock.focus();
+    }
+
+    unlink() {
+        let link = false;
+        let sel = window.getSelection();
+        if (sel.anchorNode.parentElement.tagName.toLowerCase() == 'a') {
+            link = sel.anchorNode.parentElement;
+        } else if (sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
+            link = sel.focusNode.parentElement;
+        } else if (this.checkForAnchorTag())
+            link = this.checkForAnchorTag();
+        if (link) {
+            let oldRange = sel.getRangeAt(0);
+            let range = new Range();
+            range.selectNode(link);
+            sel.removeAllRanges();
+            sel.addRange(range);            
+            document.execCommand('unlink');
+            sel.removeAllRanges();
+            sel.addRange(oldRange);
+        }
     }
 }

@@ -1,6 +1,6 @@
 export default DomButton;
 
-import DomEl from './_DomEl.js';
+import DomEl from './_DomEl';
 
 class DomButton { 
     constructor(title, icon, btnClass, text) {

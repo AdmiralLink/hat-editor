@@ -5,6 +5,12 @@
   text-indent: -10000px;
 }
 
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
 .progressBar {
   width: 90%;
   margin: 20px auto;
@@ -303,6 +309,9 @@
   transition: opacity 0.3s;
   box-shadow: 0 0 7px 2px rgba(0, 0, 0, 0.6);
 }
+.miniModal-container * {
+  box-sizing: border-box;
+}
 .miniModal-container.super {
   z-index: 999;
 }
@@ -313,19 +322,6 @@
   color: #B11;
   font-size: 45px;
   margin-bottom: 15px;
-}
-.miniModal-container div#imageUpload label {
-  font-weight: bold;
-  font-size: 14px;
-  display: block;
-  margin: 10px 5px;
-}
-.miniModal-container div#imageUpload label input[type=text] {
-  display: block;
-  font-size: 16px;
-  padding: 3px;
-  margin: 2px 0;
-  width: 80%;
 }
 .miniModal-container div#imageUpload label.imageUploader {
   display: block;
@@ -389,6 +385,46 @@
 }
 .miniModal-container .modal-content {
   padding: 20px;
+}
+.miniModal-container .modal-content label {
+  font-weight: bold;
+  font-size: 14px;
+  display: block;
+  margin: 10px auto;
+  width: 80%;
+}
+.miniModal-container .modal-content label input[type=text] {
+  display: block;
+  font-size: 16px;
+  padding: 3px;
+  margin: 2px 0;
+  width: 100%;
+}
+.miniModal-container .modal-content label.checkbox {
+  cursor: pointer;
+}
+.miniModal-container .modal-content label.checkbox svg {
+  display: none;
+  position: relative;
+  top: 3px;
+  margin-right: 4px;
+}
+.miniModal-container .modal-content label.checkbox input {
+  display: none;
+}
+.miniModal-container .modal-content label.checkbox input ~ svg {
+  font-size: 20px;
+}
+.miniModal-container .modal-content label.checkbox input ~ svg:first-of-type {
+  display: inline-block;
+  color: #666;
+}
+.miniModal-container .modal-content label.checkbox input:checked ~ svg:first-of-type {
+  display: none;
+}
+.miniModal-container .modal-content label.checkbox input:checked ~ svg:last-of-type {
+  display: inline-block;
+  color: #171;
 }
 .miniModal-container .modal-buttons {
   padding: 10px;

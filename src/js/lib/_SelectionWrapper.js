@@ -4,9 +4,9 @@ import CursorFocus from "./_CursorFocus";
 export default SelectionWrapper;
 
 class SelectionWrapper {
-    constructor(tag, view) {
-        this.tag = tag;
+    constructor(tag, view, opts) {
         let sel = window.getSelection();
+        let range = sel.getRangeAt(0);
         if (sel.rangeCount) {
             if (view == 'content') {
                 if (typeof(tag) == 'object') {
@@ -50,8 +50,20 @@ class SelectionWrapper {
                             var command = 'formatBlock';
                             commandTag = tag;
                             break;
+                        case 'a':
+                            var command = 'createLink';
+                            commandTag = opts.href;
+                            break;
                     } 
                     document.execCommand(command, false, commandTag);
+                    if (tag == 'a') {
+                        if (opts.target) {
+                            sel.anchorNode.parentElement.setAttribute('target', opts.target);
+                        }
+                        if (opts.text) {
+                            sel.anchorNode.parentElement.innerText = opts.text;
+                        }
+                    }
                     if (badTag) {
                         let regex = new RegExp('\<\/?' + badTag + '>', 'g');
                         let badClose = '</' + badTag + '>';
@@ -62,11 +74,23 @@ class SelectionWrapper {
                     }
                 }
             } else {
-                let range = sel.getRangeAt(0);
+                let optString = '';
+                let text = sel.toString();
+                if (opts) {
+                    optString = ' ';
+                    if (opts.text) {
+                        text = opts.text;
+                        delete opts.text;
+                    }
+                    for (let [key, value] of Object.entries(opts)) {
+                        optString += key + '="' + value + '" '; 
+                    }
+                    optString = optString.substr(0, optString.length -1);
+                }
                 if (typeof(tag) == 'object') {
-                    document.execCommand('insertText', false, '<' + tag[0] + '><' + tag[1] + '>' + range.toString() + '</' + tag[1] + '></' + tag[0] + '>');
+                    document.execCommand('insertText', false, '<' + tag[0] + '><' + tag[1] + '>' + text + '</' + tag[1] + '></' + tag[0] + '>');
                 } else {
-                    document.execCommand('insertText', false, '<' + tag + '>' + range.toString() + '</' + tag + '>');
+                    document.execCommand('insertText', false, '<' + tag + optString + '>' + text + '</' + tag + '>');
                 }
             }
         }

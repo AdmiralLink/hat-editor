@@ -1,10 +1,10 @@
 export default ParagraphBlock;
 
-import Block from './_block.js';
-import CursorFocus from '../lib/_CursorFocus.js';
-import DomEl from './../lib/_DomEl.js';
-import ParagraphToolbar from './_paragraphToolbar.js';
-import SelectionWrapper from '../lib/_SelectionWrapper.js';
+import Block from './_block';
+import CursorFocus from '../lib/_CursorFocus';
+import DomEl from './../lib/_DomEl';
+import ParagraphToolbar from './_paragraphToolbar';
+import SelectionWrapper from '../lib/_SelectionWrapper';
 
 class ParagraphBlock extends Block {
     createElement() {
@@ -60,6 +60,9 @@ class ParagraphBlock extends Block {
                     case 73:
                         this.toolbar.addImage();
                         break;
+                    case 75:
+                        this.toolbar.unlink();
+                        return false;
                     case 49:
                         new SelectionWrapper('h1', this.view);
                         break;
@@ -75,22 +78,24 @@ class ParagraphBlock extends Block {
                 }
             }
             switch (e.keyCode) {
-                case 66:
-                case 98: 
+                case 66: 
                     e.preventDefault();
                     new SelectionWrapper('strong', this.view);
                     return false;
                     break;
-                case 73:
-                case 105: 
+                case 73: 
                     e.preventDefault();
                     new SelectionWrapper('em', this.view);
                     return false;
                     break;
-                case 85:
-                case 117: 
+                case 85: 
                     e.preventDefault();
                     new SelectionWrapper('u', this.view);
+                    return false;
+                    break;
+                case 75:
+                    e.preventDefault();
+                    this.toolbar.addLink();
                     return false;
                     break;
             }

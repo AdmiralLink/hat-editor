@@ -1,4 +1,4 @@
-import ErrorModal from "./_ErrorModal";
+import ErrorModal from "../modules/_ErrorModal";
 import DomEl from "./_DomEl";
 
 export default Ajax;

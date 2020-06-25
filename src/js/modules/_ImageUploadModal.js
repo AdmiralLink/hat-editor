@@ -1,11 +1,11 @@
 export default ImageUploadModal;
 
-import Ajax from './_Ajax.js';
-import DomEl from './_DomEl.js';
+import Ajax from '../lib/_Ajax';
+import DomEl from '../lib/_DomEl';
 import ErrorModal from './_ErrorModal.js'
-import InputField from './_InputField.js';
-import MiniModal from './_MiniModal.js';
-import ProgressBar from './_ProgressBar.js';
+import InputField from '../lib/_InputField';
+import MiniModal from '../lib/_MiniModal';
+import ProgressBar from '../lib/_ProgressBar';
 
 class ImageUploadModal extends MiniModal {
     constructor() {
@@ -105,7 +105,7 @@ class ImageUploadModal extends MiniModal {
         let span = new DomEl('span');
         span.innerText = 'Click here to browse or drop the image you want to upload';
         let icon = new DomEl('i.fas.fa-file-image');
-        this.label = new DomEl('label.imageUploader[for="uploader"][tab-index="1"][title="Hit enter to browse for an image to upload"]');
+        this.label = new DomEl('label.imageUploader[for="uploader"][tabindex="1"][title="Hit enter to browse for an image to upload"]');
         this.preview = new DomEl('img.preview'); 
         this.label.append(icon);
         this.label.append(this.preview);

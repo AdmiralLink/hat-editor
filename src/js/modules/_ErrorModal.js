@@ -1,7 +1,7 @@
 export default ErrorModal;
 
-import MiniModal from './_MiniModal.js';
-import DomEl from './_DomEl.js';
+import MiniModal from '../lib/_MiniModal';
+import DomEl from '../lib/_DomEl';
 
 class ErrorModal extends MiniModal {
     constructor(errorMessage) {

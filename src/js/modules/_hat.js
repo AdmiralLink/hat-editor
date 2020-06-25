@@ -1,6 +1,6 @@
 export default Hat;
-import Sortable from './../lib/_Sortable.js';
-import DomEl from './../lib/_DomEl.js';
+import Sortable from './../lib/_Sortable';
+import DomEl from './../lib/_DomEl';
 
 let Hat = function(containerEl) {
     let Blocks = [];

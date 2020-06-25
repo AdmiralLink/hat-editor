@@ -5,6 +5,7 @@ import DomButton from "./_DomButton";
 
 class MiniModal {
     constructor(content, childClass=false) {
+        this.confirmed = false;
         if (!childClass) {
             return this.constructModal(content);
         }
@@ -13,16 +14,16 @@ class MiniModal {
     addClickHandlers() {
         let modal = this;
         this.backgroundDiv.addEventListener('click', function() {
-            modal.cancel();
+            modal.close();
         });
         if (this.options.closeX) {
             this.closeBtn.addEventListener('click', function() {
-                modal.cancel();
+                modal.close();
             })
         }
         if (this.options.confirm) {
             this.cancelBtn.addEventListener('click', function() {
-                modal.cancel();        
+                modal.close();        
             });
         }
         this.confirmBtn.addEventListener('click', function() {
@@ -41,9 +42,11 @@ class MiniModal {
 
     addKeyboardHandlers() {
         let modal = this;
-        this.modalContainer.addEventListener('keyup', function(e) {
+        this.modalContainer.addEventListener('keydown', function(e) {
             if (e.which == 27) {
-                modal.cancel();
+                e.preventDefault();
+                e.stopPropagation();
+                modal.close();
             }
         });
     }
@@ -63,7 +66,7 @@ class MiniModal {
         this.backgroundDiv = new DomEl('div.miniModal-background');
         this.modalContainer = new DomEl('div.miniModal-container');
         if (this.options.modalClass) {
-            if (this.options.modalClass == 'string') {
+            if (typeof(this.options.modalClass) == 'string') {
                 this.options.modalClass = [this.options.modalClass];
             }
             this.options.modalClass.forEach((className) => {
@@ -103,14 +106,12 @@ class MiniModal {
         this.modalContainer.append(buttonBar);
     }
 
-    cancel() {
-        if (this.options.confirm) {
-            this.modalContainer.dispatchEvent(new Event('canceled'));
-        }
-        this.close();
-    }
-
     close() {
+        if (this.options.confirm && !this.confirmed) {
+            this.modalContainer.dispatchEvent(new Event('canceled'));
+        } else {
+            this.modalContainer.dispatchEvent(new Event('closed'));
+        }
         this.backgroundDiv.classList.remove('show');
         this.modalContainer.classList.remove('show');
         let modal = this;
@@ -124,6 +125,7 @@ class MiniModal {
     confirm() {
         if (this.options.confirm) {
             this.modalContainer.dispatchEvent(new Event('confirmed'));
+            this.confirmed = true;
         }
         this.close();
     }

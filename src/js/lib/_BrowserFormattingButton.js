@@ -1,7 +1,7 @@
 export default BrowserFormattingButton;
 
-import DomButton from './_DomButton.js';
-import SelectionWrapper from './_SelectionWrapper.js';
+import DomButton from './_DomButton';
+import SelectionWrapper from './_SelectionWrapper';
 
 class BrowserFormattingButton {
     constructor(title, icon, tag, parentBlock) {

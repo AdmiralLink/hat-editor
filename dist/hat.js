@@ -3854,6 +3854,7 @@
 
   class MiniModal {
       constructor(content, childClass=false) {
+          this.confirmed = false;
           if (!childClass) {
               return this.constructModal(content);
           }
@@ -3862,16 +3863,16 @@
       addClickHandlers() {
           let modal = this;
           this.backgroundDiv.addEventListener('click', function() {
-              modal.cancel();
+              modal.close();
           });
           if (this.options.closeX) {
               this.closeBtn.addEventListener('click', function() {
-                  modal.cancel();
+                  modal.close();
               });
           }
           if (this.options.confirm) {
               this.cancelBtn.addEventListener('click', function() {
-                  modal.cancel();        
+                  modal.close();        
               });
           }
           this.confirmBtn.addEventListener('click', function() {
@@ -3890,9 +3891,11 @@
 
       addKeyboardHandlers() {
           let modal = this;
-          this.modalContainer.addEventListener('keyup', function(e) {
+          this.modalContainer.addEventListener('keydown', function(e) {
               if (e.which == 27) {
-                  modal.cancel();
+                  e.preventDefault();
+                  e.stopPropagation();
+                  modal.close();
               }
           });
       }
@@ -3912,7 +3915,7 @@
           this.backgroundDiv = new DomEl('div.miniModal-background');
           this.modalContainer = new DomEl('div.miniModal-container');
           if (this.options.modalClass) {
-              if (this.options.modalClass == 'string') {
+              if (typeof(this.options.modalClass) == 'string') {
                   this.options.modalClass = [this.options.modalClass];
               }
               this.options.modalClass.forEach((className) => {
@@ -3952,14 +3955,12 @@
           this.modalContainer.append(buttonBar);
       }
 
-      cancel() {
-          if (this.options.confirm) {
-              this.modalContainer.dispatchEvent(new Event('canceled'));
-          }
-          this.close();
-      }
-
       close() {
+          if (this.options.confirm && !this.confirmed) {
+              this.modalContainer.dispatchEvent(new Event('canceled'));
+          } else {
+              this.modalContainer.dispatchEvent(new Event('closed'));
+          }
           this.backgroundDiv.classList.remove('show');
           this.modalContainer.classList.remove('show');
           let modal = this;
@@ -3972,6 +3973,7 @@
       confirm() {
           if (this.options.confirm) {
               this.modalContainer.dispatchEvent(new Event('confirmed'));
+              this.confirmed = true;
           }
           this.close();
       }
@@ -4217,9 +4219,9 @@
   }
 
   class SelectionWrapper {
-      constructor(tag, view) {
-          this.tag = tag;
+      constructor(tag, view, opts) {
           let sel = window.getSelection();
+          let range = sel.getRangeAt(0);
           if (sel.rangeCount) {
               if (view == 'content') {
                   if (typeof(tag) == 'object') {
@@ -4262,8 +4264,20 @@
                               var command = 'formatBlock';
                               commandTag = tag;
                               break;
+                          case 'a':
+                              var command = 'createLink';
+                              commandTag = opts.href;
+                              break;
                       } 
                       document.execCommand(command, false, commandTag);
+                      if (tag == 'a') {
+                          if (opts.target) {
+                              sel.anchorNode.parentElement.setAttribute('target', opts.target);
+                          }
+                          if (opts.text) {
+                              sel.anchorNode.parentElement.innerText = opts.text;
+                          }
+                      }
                       if (badTag) {
                           let badClose = '</' + badTag + '>';
                           let goodClose = '</' + tag + '>';
@@ -4273,11 +4287,23 @@
                       }
                   }
               } else {
-                  let range = sel.getRangeAt(0);
+                  let optString = '';
+                  let text = sel.toString();
+                  if (opts) {
+                      optString = ' ';
+                      if (opts.text) {
+                          text = opts.text;
+                          delete opts.text;
+                      }
+                      for (let [key, value] of Object.entries(opts)) {
+                          optString += key + '="' + value + '" '; 
+                      }
+                      optString = optString.substr(0, optString.length -1);
+                  }
                   if (typeof(tag) == 'object') {
-                      document.execCommand('insertText', false, '<' + tag[0] + '><' + tag[1] + '>' + range.toString() + '</' + tag[1] + '></' + tag[0] + '>');
+                      document.execCommand('insertText', false, '<' + tag[0] + '><' + tag[1] + '>' + text + '</' + tag[1] + '></' + tag[0] + '>');
                   } else {
-                      document.execCommand('insertText', false, '<' + tag + '>' + range.toString() + '</' + tag + '>');
+                      document.execCommand('insertText', false, '<' + tag + optString + '>' + text + '</' + tag + '>');
                   }
               }
           }
@@ -4293,6 +4319,34 @@
           return button;
       }
   }
+
+  const debounce = (func, wait) => {
+      let timeout;
+      
+      // This is the function that is returned and will be executed many times
+      // We spread (...args) to capture any number of parameters we want to pass
+      return function executedFunction(...args) {
+      
+          // The callback function to be executed after 
+          // the debounce time has elapsed
+          const later = () => {
+          // null timeout to indicate the debounce ended
+          timeout = null;
+          
+          // Execute the callback
+          func(...args);
+          };
+          // This will reset the waiting every function execution.
+          // This is the step that prevents the function from
+          // being executed because it will never reach the 
+          // inside of the previous setTimeout  
+          clearTimeout(timeout);
+          
+          // Restart the debounce waiting period.
+          // setTimeout returns a truthy value (it differs in web vs Node)
+          timeout = setTimeout(later, wait);
+      };
+  };
 
   class ErrorModal extends MiniModal {
       constructor(errorMessage) {
@@ -4369,13 +4423,17 @@
   }
 
   class InputField {
-      constructor(id, labelName, placeholder, type) {
+      constructor(id, labelName, placeholder, type, value) {
           type = type || 'text';
+          value = value || '';
           let inputString = 'input#' + id + '[name="' + id + '"][type="'+ type + '"]';
           if (placeholder) {
               inputString += '[placeholder="' + placeholder + '"]';
           }
           let input = new DomEl(inputString);
+          if (value) {
+              input.value = value;
+          }
           let label = new DomEl('label[for="' + id + '"]');
           label.innerText = labelName;
           label.append(input);
@@ -4529,7 +4587,7 @@
           let span = new DomEl('span');
           span.innerText = 'Click here to browse or drop the image you want to upload';
           let icon = new DomEl('i.fas.fa-file-image');
-          this.label = new DomEl('label.imageUploader[for="uploader"][tab-index="1"][title="Hit enter to browse for an image to upload"]');
+          this.label = new DomEl('label.imageUploader[for="uploader"][tabindex="1"][title="Hit enter to browse for an image to upload"]');
           this.preview = new DomEl('img.preview'); 
           this.label.append(icon);
           this.label.append(this.preview);
@@ -4553,6 +4611,90 @@
       }
   }
 
+  class Checkbox {
+      constructor(name, labelDisplay, altText, value) {
+          let checked = (value) ? '[checked]' : '';
+          this.box = new DomEl('input[type=checkbox][id=' + name + '][name=' + name + ']' + checked);
+          this.label = new DomEl('label[for=' + name + '][tabindex=0][describedby=Description' + name +'][title=' + altText +'].checkbox');
+          let notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#Description' + name);
+          notification.innerText = (value) ? 'Link currently opens in new tab. Press spacebar to disable this' : 'Link will not open in new tab. Press spacebar to have link open in new tab'; 
+          this.label.addEventListener('keydown', (e) => {
+              if (e.keyCode == 32) {
+                  this.label.children[0].click();
+                  notification.innerText = (this.label.children[0].checked) ? 'Link currently opens in new tab. Press spacebar to disable this' : 'Link will not open in new tab. Press spacebar to have link open in new tab';
+              }
+          });
+          this.checkOff = new DomEl('span.fas.fa-circle');
+          this.checkOn = new DomEl('span.fas.fa-check-circle');
+          this.text = new DomEl('span');
+          this.text.innerText = labelDisplay;
+          this.label.append(this.box);
+          this.label.append(this.checkOff);
+          this.label.append(this.checkOn);
+          this.label.append(this.text);
+          return this.label;
+      }
+  }
+
+  class LinkModal extends MiniModal {
+      constructor(details) {
+          super(false, true);
+          if (details) {
+              for (let [key, value] of Object.entries(details)) {
+                  this[key] = value;
+              }
+          }
+          this.setDefaults();
+          this.createElements();
+          this.constructModal(this.getModalOptions());
+      }
+
+      confirm() {
+          if (this.hrefField.children[0].value) {
+              this.values = {
+                  href: this.hrefField.children[0].value,
+                  text: this.textField.children[0].value
+              };
+              if (this.blankField.children[0].checked) {
+                  this.values.target = '_blank';
+              }
+              this.modalContainer.dispatchEvent(new Event('confirmed'));
+              this.confirmed = true;
+              this.close();
+          } else {
+              new ErrorModal('You must include a link');
+          }
+      }
+
+      createElements() {
+          this.form = new DomEl('div#linkForm');
+          this.hrefField = new InputField('linkHref', 'Link', 'https://google.com or tel:18009453669 or mailto:me@you.com', 'text', this.href);
+          this.blankField = new Checkbox('targetBlank', 'Open in new window', 'Select to have the link open in a new window/tab', this.blank);
+          this.textField = new InputField('displayText', 'Text to display', false, 'text', this.text);   
+          this.form.append(this.hrefField);
+          this.form.append(this.textField);
+          this.form.append(this.blankField);
+      }
+
+      getModalOptions() {
+          return {
+              confirm: true,
+              confirmButtonTitle: 'Insert/update link',
+              content: this.form,
+              contentType: 'node',
+              focusTarget: this.hrefField
+          };
+      }
+
+      setDefaults() {
+          ['href','blank','text'].forEach((val) => {
+              if (!this[val]) {
+                  this.val = false;
+              }
+          });
+      }
+  }
+
   class ParagraphToolbar {
       constructor(paragraphBlock) {
           this.parentBlock = paragraphBlock;
@@ -4560,6 +4702,8 @@
           this.addFormattingButtons();
           this.addHeaderButton();
           this.addImageButton();
+          this.addLinkButton();
+          this.addUnlinkButton();
           this.addHtmlView();
           this.addFocusShield();
           paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
@@ -4625,23 +4769,67 @@
           toolbar.container.append(el);
       }
 
+      addLink() {
+          let sel = window.getSelection();
+          let range = sel.getRangeAt(0);
+          let options = {
+              text: range.toString()
+          };
+          let anchorEl = sel.anchorNode.parentElement;
+          let focusEl = sel.focusNode.parentElement;
+          if (this.parentBlock.view == 'content') {
+              if (sel.isCollapsed && anchorEl.tagName.toLowerCase() == 'a') {
+                  options.href = anchorEl.getAttribute('href');
+                  options.blank = (anchorEl.getAttribute('target') == '_blank');
+                  options.text = anchorEl.innerText;
+                  options.updateExisting = true;
+              } else if (anchorEl == focusEl && anchorEl.tagName.toLowerCase() == 'a') {
+                  options.href = anchorEl.getAttribute('href');
+                  options.blank = (anchorEl.getAttribute('target') == '_blank');
+              } else if (this.checkForAnchorTag()) {
+                  let theTag = this.checkForAnchorTag();
+                  options.href = theTag.getAttribute('href');
+                  options.blank = (theTag.getAttribute('target') == '_blank');
+              }
+          }
+          let link = new LinkModal(options);
+          let toolbar = this;
+          link.modalContainer.addEventListener('confirmed', (e) => {
+              toolbar.returnCursor(sel, range);
+              let values = link.values;
+              if (link.updateExisting) {
+                  let theLink = sel.anchorNode.parentElement;
+                  theLink.setAttribute('href', values.href);
+                  if (options.blank && theLink.getAttribute('target') !== '_blank') {
+                      theLink.setAttribute('target', '_blank');
+                  } else if ( !options.blank && theLink.getAttribute('target') == '_blank') {
+                      theLink.setAttribute('target', '');
+                  }
+                  theLink.innerText = values.text;
+                  return true;
+              }
+              new SelectionWrapper('a', toolbar.parentBlock.view, values);
+          });
+          link.modalContainer.addEventListener('canceled', (e) => {
+              toolbar.returnCursor(sel, range);
+          });
+      }
+
       addImage() {
           let sel = window.getSelection();
           let range = sel.getRangeAt(0);
           let image = new ImageUploadModal();
           let toolbar = this;
           image.modalContainer.addEventListener('uploaded', (e) => {
+              toolbar.returnCursor(sel, range);
               if (toolbar.parentBlock.view == 'content') {
-                  toolbar.parentBlock.contentEl.focus();
-                  sel.removeAllRanges();
-                  sel.addRange(range);
                   document.execCommand('insertHTML', false, image.imageEl.outerHTML);
               } else {
-                  toolbar.parhtmlEl.focus();
-                  sel.removeAllRanges();
-                  sel.addRange(range);
                   document.execCommand('insertText', false, image.imageEl.outerHTML);
               }
+          });
+          image.modalContainer.addEventListener('canceled', (e) => {
+              toolbar.returnCursor(sel, range);
           });
       }
 
@@ -4653,6 +4841,83 @@
           });
           this.contextButtons.push(el);
           toolbar.container.append(el);
+      }
+
+      addLinkButton() {
+          let toolbar = this;
+          let el = new DomButton('Insert Link', 'link');
+          el.addEventListener('click', function() {
+              toolbar.addLink();
+          });
+          this.contextButtons.push(el);
+          toolbar.container.append(el);
+      }
+
+      addUnlinkButton() {
+          let toolbar = this;
+          this.unlinkBtn = new DomButton('Unlink text', 'unlink');
+          this.parentBlock.editEl.addEventListener('focus', () => {
+              toolbar.checkForLink();
+          });
+          this.parentBlock.editEl.addEventListener('viewChange', () => {
+              toolbar.checkForLink();
+          });
+          this.parentBlock.editEl.addEventListener('keydown', () => {
+              toolbar.debounceLinkCheck();
+          });
+          this.unlinkBtn.addEventListener('click', function() {
+              toolbar.unlink();
+          });
+          toolbar.container.append(this.unlinkBtn);
+      }
+
+      checkForAnchorTag() {
+          if (!sel) {
+              var sel = window.getSelection();
+          }
+          if (!range) {
+              var range = sel.getRangeAt(0);
+          }
+          let contents = range.cloneContents();
+          for (let theNode of contents.children) {
+              if (theNode.tagName.toLowerCase() == 'a') {
+                  return theNode;
+              }
+          }
+          return false;
+      }
+
+      checkForLink() {
+          let linkFound = false;
+          let sel = window.getSelection();
+          let range = sel.getRangeAt(0);
+          if (sel.anchorNode.parentElement.tagName.toLowerCase() == 'a' || sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
+              linkFound = true;
+          } else {
+              if (this.checkForAnchorTag()) {
+                  linkFound = true;
+              }
+          }
+          if (linkFound) {
+              this.unlinkBtn.removeAttribute('disabled');  
+          } else {
+              this.unlinkBtn.setAttribute('disabled', true);
+          }
+      }
+
+      debounceLinkCheck = debounce(() => {
+          this.checkForLink();
+      }, 350);
+
+      returnCursor(sel, range) {
+          if (this.parentBlock.view == 'content') { 
+              this.parentBlock.editEl.focus();
+          } else {
+              this.parentBlock.htmlEl.focus();
+          }
+          sel.removeAllRanges();
+          sel.addRange(range);
+          this.checkForLink();
       }
 
       toggleHtmlView() {
@@ -4674,7 +4939,29 @@
           }
           this.parentBlock.editEl.classList.toggle('flip');
           this.parentBlock.htmlEl.classList.toggle('flip');
+          this.parentBlock.dispatchEvent('viewChange');
           this.parentBlock.focus();
+      }
+
+      unlink() {
+          let link = false;
+          let sel = window.getSelection();
+          if (sel.anchorNode.parentElement.tagName.toLowerCase() == 'a') {
+              link = sel.anchorNode.parentElement;
+          } else if (sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
+              link = sel.focusNode.parentElement;
+          } else if (this.checkForAnchorTag())
+              link = this.checkForAnchorTag();
+          if (link) {
+              let oldRange = sel.getRangeAt(0);
+              let range = new Range();
+              range.selectNode(link);
+              sel.removeAllRanges();
+              sel.addRange(range);            
+              document.execCommand('unlink');
+              sel.removeAllRanges();
+              sel.addRange(oldRange);
+          }
       }
   }
 
@@ -4732,6 +5019,9 @@
                       case 73:
                           this.toolbar.addImage();
                           break;
+                      case 75:
+                          this.toolbar.unlink();
+                          return false;
                       case 49:
                           new SelectionWrapper('h1', this.view);
                           break;
@@ -4747,20 +5037,21 @@
                   }
               }
               switch (e.keyCode) {
-                  case 66:
-                  case 98: 
+                  case 66: 
                       e.preventDefault();
                       new SelectionWrapper('strong', this.view);
                       return false;
-                  case 73:
-                  case 105: 
+                  case 73: 
                       e.preventDefault();
                       new SelectionWrapper('em', this.view);
                       return false;
-                  case 85:
-                  case 117: 
+                  case 85: 
                       e.preventDefault();
                       new SelectionWrapper('u', this.view);
+                      return false;
+                  case 75:
+                      e.preventDefault();
+                      this.toolbar.addLink();
                       return false;
               }
           }

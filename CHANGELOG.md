@@ -1,3 +1,16 @@
+# 0.3.2
+## ADDED
+- Checkbox (lib)
+- LinkModal
+- Added Unlink button/functionality
+- Images/ to gitignore
+## MODIFIED
+- SelectionWrapper now accepts some parameters for tags
+- MiniModal now only has a "close" method, will throw "canceled" event if necessary
+- Esc now properly closes modal
+- Made ImageModal label/input styling standard for MiniModal
+- Fixed typos in upload.php
+
 # 0.3.1
 ## ADDED
 - js\lib: ErrorModal, Ajax, ImageUploadModal (no library support), inputField, ProgressBar
