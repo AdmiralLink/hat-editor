@@ -47,15 +47,29 @@ class ParagraphBlock extends Block {
         return this.htmlEl.innerText;
     }
 
+    insideTag(tag) {
+        if (this.view == 'content') {
+            let sel = window.getSelection();
+            if (sel.anchorNode.parentElement.closest(tag) && sel.anchorNode.parentElement.closest('.editContainer') == this.editEl) {
+                return true;
+            } else if (sel.focusNode.parentElement.closest(tag) && sel.focusNode.parentElement.closest('.editContainer') == this.editEl) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     keyboardShortcuts(e) {
         if (e.ctrlKey || e.metaKey) {
             if (e.shiftKey) {
                 switch(e.keyCode) {
                     case 79:
                         new SelectionWrapper(['ol', 'li'], this.view);
+                        return false;
                         break;
                     case 85:
                         new SelectionWrapper(['ul','li'], this.view);
+                        return false;
                         break;
                     case 73:
                         this.toolbar.addImage();
@@ -65,19 +79,38 @@ class ParagraphBlock extends Block {
                         return false;
                     case 49:
                         new SelectionWrapper('h1', this.view);
+                        return false;
                         break;
                     case 50:
                         new SelectionWrapper('h2', this.view);
+                        return false;
                         break;
                     case 51:
                         new SelectionWrapper('h3', this.view);
+                        return false;
                         break;
                     case 52:
                         new SelectionWrapper('h4', this.view);
+                        return false;
                         break;
                 }
             }
             switch (e.keyCode) {
+                case 186:
+                    if (this.insideTag('ul') || this.insideTag('ol')) {
+                        e.preventDefault();
+                        document.execCommand('outdent');
+                        return false;
+                    }
+                    break;
+                case 192:
+                case 222:
+                    if (this.insideTag('ul') || this.insideTag('ol')) {
+                        e.preventDefault();
+                        document.execCommand('indent');
+                        return false;
+                    }
+                    break;
                 case 66: 
                     e.preventDefault();
                     new SelectionWrapper('strong', this.view);

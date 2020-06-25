@@ -5,9 +5,9 @@ export default SelectionWrapper;
 
 class SelectionWrapper {
     constructor(tag, view, opts) {
-        let sel = window.getSelection();
-        let range = sel.getRangeAt(0);
-        if (sel.rangeCount) {
+        this.sel = window.getSelection();
+        let range = this.sel.getRangeAt(0);
+        if (this.sel.rangeCount) {
             if (view == 'content') {
                 if (typeof(tag) == 'object') {
                     switch (tag[0]) {
@@ -18,18 +18,18 @@ class SelectionWrapper {
                             var command = 'insertUnorderedList';
                             break;
                     }
-                    document.execCommand(command);
-                    let nearestP = sel.anchorNode.parentElement.closest('p');
-                    if (nearestP && nearestP.childNodes[0].nodeName.toLowerCase() == tag[0]) {
-                        let ul = nearestP.childNodes[0];
-                        nearestP.parentNode.insertBefore(ul, nearestP);
-                        nearestP.remove();
-                        new CursorFocus(ul.childNodes[0]);
+                    if ( !this.sel.anchorNode.parentElement.tagName.toLowerCase() == 'div' && this.sel.parentElement.parentElement.classList.hasClass('editContainer')) {
+                        document.execCommand('formatBlock', false, 'div');
                     }
+                    if (this.sel.anchorNode.parentElement.tagName.toLowerCase() == tag[0]) {
+                        document.execCommand('indent');
+                    } else {
+                        document.execCommand(command);
+                    }
+                    this.checkNearestP(tag[0])
                 } else {
                     var badTag = false;
                     var commandTag = false;
-                    var isBlockLevelElement = false;
                     switch (tag) {
                         case 'strong':
                             var badTag = 'b';
@@ -40,13 +40,13 @@ class SelectionWrapper {
                             var command = 'italic';
                             break;
                         case 'u':
-                            var badTag = false;
                             var command = 'underline';
                             break;
                         case 'h1':
                         case 'h2':
                         case 'h3':
                         case 'h4':
+                        case 'p':
                             var command = 'formatBlock';
                             commandTag = tag;
                             break;
@@ -58,10 +58,10 @@ class SelectionWrapper {
                     document.execCommand(command, false, commandTag);
                     if (tag == 'a') {
                         if (opts.target) {
-                            sel.anchorNode.parentElement.setAttribute('target', opts.target);
+                            this.sel.anchorNode.parentElement.setAttribute('target', opts.target);
                         }
                         if (opts.text) {
-                            sel.anchorNode.parentElement.innerText = opts.text;
+                            this.sel.anchorNode.parentElement.innerText = opts.text;
                         }
                     }
                     if (badTag) {
@@ -70,12 +70,12 @@ class SelectionWrapper {
                         let goodClose = '</' + tag + '>';
                         let badOpen = badClose.replace('/','');
                         let goodOpen = goodClose.replace('/','');
-                        sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
+                        this.sel.anchorNode.parentElement.outerHTML = this.sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
                     }
                 }
             } else {
                 let optString = '';
-                let text = sel.toString();
+                let text = this.sel.toString();
                 if (opts) {
                     optString = ' ';
                     if (opts.text) {
@@ -93,6 +93,16 @@ class SelectionWrapper {
                     document.execCommand('insertText', false, '<' + tag + optString + '>' + text + '</' + tag + '>');
                 }
             }
+        }
+    }
+
+    checkNearestP(tag) {
+        let nearestP = this.sel.anchorNode.parentElement.closest('p');
+        if (nearestP && nearestP.childNodes[0].nodeName.toLowerCase() == tag) {
+            let node = nearestP.childNodes[0];
+            nearestP.parentNode.insertBefore(node, nearestP);
+            nearestP.remove();
+            new CursorFocus(node.childNodes[0]);
         }
     }
 }

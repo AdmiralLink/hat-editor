@@ -4220,9 +4220,9 @@
 
   class SelectionWrapper {
       constructor(tag, view, opts) {
-          let sel = window.getSelection();
-          let range = sel.getRangeAt(0);
-          if (sel.rangeCount) {
+          this.sel = window.getSelection();
+          let range = this.sel.getRangeAt(0);
+          if (this.sel.rangeCount) {
               if (view == 'content') {
                   if (typeof(tag) == 'object') {
                       switch (tag[0]) {
@@ -4233,14 +4233,15 @@
                               var command = 'insertUnorderedList';
                               break;
                       }
-                      document.execCommand(command);
-                      let nearestP = sel.anchorNode.parentElement.closest('p');
-                      if (nearestP && nearestP.childNodes[0].nodeName.toLowerCase() == tag[0]) {
-                          let ul = nearestP.childNodes[0];
-                          nearestP.parentNode.insertBefore(ul, nearestP);
-                          nearestP.remove();
-                          new CursorFocus(ul.childNodes[0]);
+                      if ( !this.sel.anchorNode.parentElement.tagName.toLowerCase() == 'div' && this.sel.parentElement.parentElement.classList.hasClass('editContainer')) {
+                          document.execCommand('formatBlock', false, 'div');
                       }
+                      if (this.sel.anchorNode.parentElement.tagName.toLowerCase() == tag[0]) {
+                          document.execCommand('indent');
+                      } else {
+                          document.execCommand(command);
+                      }
+                      this.checkNearestP(tag[0]);
                   } else {
                       var badTag = false;
                       var commandTag = false;
@@ -4254,13 +4255,13 @@
                               var command = 'italic';
                               break;
                           case 'u':
-                              var badTag = false;
                               var command = 'underline';
                               break;
                           case 'h1':
                           case 'h2':
                           case 'h3':
                           case 'h4':
+                          case 'p':
                               var command = 'formatBlock';
                               commandTag = tag;
                               break;
@@ -4272,10 +4273,10 @@
                       document.execCommand(command, false, commandTag);
                       if (tag == 'a') {
                           if (opts.target) {
-                              sel.anchorNode.parentElement.setAttribute('target', opts.target);
+                              this.sel.anchorNode.parentElement.setAttribute('target', opts.target);
                           }
                           if (opts.text) {
-                              sel.anchorNode.parentElement.innerText = opts.text;
+                              this.sel.anchorNode.parentElement.innerText = opts.text;
                           }
                       }
                       if (badTag) {
@@ -4283,12 +4284,12 @@
                           let goodClose = '</' + tag + '>';
                           let badOpen = badClose.replace('/','');
                           let goodOpen = goodClose.replace('/','');
-                          sel.anchorNode.parentElement.outerHTML = sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
+                          this.sel.anchorNode.parentElement.outerHTML = this.sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
                       }
                   }
               } else {
                   let optString = '';
-                  let text = sel.toString();
+                  let text = this.sel.toString();
                   if (opts) {
                       optString = ' ';
                       if (opts.text) {
@@ -4306,6 +4307,16 @@
                       document.execCommand('insertText', false, '<' + tag + optString + '>' + text + '</' + tag + '>');
                   }
               }
+          }
+      }
+
+      checkNearestP(tag) {
+          let nearestP = this.sel.anchorNode.parentElement.closest('p');
+          if (nearestP && nearestP.childNodes[0].nodeName.toLowerCase() == tag) {
+              let node = nearestP.childNodes[0];
+              nearestP.parentNode.insertBefore(node, nearestP);
+              nearestP.remove();
+              new CursorFocus(node.childNodes[0]);
           }
       }
   }
@@ -4706,6 +4717,7 @@
           this.addUnlinkButton();
           this.addHtmlView();
           this.addFocusShield();
+          this.setFormattingChecks();
           paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
       }
 
@@ -4735,17 +4747,19 @@
       }
 
       addFormattingButtons() {
-          let bold = new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock);
-          this.container.append(bold);
-          let italic = new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock);
-          this.container.append(italic);
-          let underline = new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock);
-          this.container.append(underline);
-          let ul = new BrowserFormattingButton('Create ordered list', 'list-ul', ['ul', 'li'], this.parentBlock);
-          this.container.append(ul);
-          let ol = new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock);
-          this.container.append(ol);
-          this.contextButtons = [bold, italic, underline, ul, ol];
+          this.paragraphBtn = new BrowserFormattingButton('Make this a paragraph', 'paragraph', 'p', this.parentBlock);
+          this.container.append(this.paragraphBtn);
+          this.boldBtn = new BrowserFormattingButton('Toggle selected text bold', 'bold', 'strong', this.parentBlock);
+          this.container.append(this.boldBtn);
+          this.italicBtn = new BrowserFormattingButton('Toggle selected text italic', 'italic', 'em', this.parentBlock);
+          this.container.append(this.italicBtn);
+          this.underlineBtn = new BrowserFormattingButton('Toggle selected text underlined', 'underline', 'u', this.parentBlock);
+          this.container.append(this.underlineBtn);
+          this.ulBtn = new BrowserFormattingButton('Toggle ordered list', 'list-ul', ['ul', 'li'], this.parentBlock);
+          this.container.append(this.ulBtn);
+          this.olBtn = new BrowserFormattingButton('Toggle ordered list', 'list-ol', ['ol', 'li'], this.parentBlock);
+          this.container.append(this.olBtn);
+          this.contextButtons = [this.paragraphBtn, this.boldBtn, this.italicBtn, this.underlineBtn, this.ulBtn, this.olBtn];
       }
 
       addHeaderButton() {
@@ -4856,22 +4870,13 @@
       addUnlinkButton() {
           let toolbar = this;
           this.unlinkBtn = new DomButton('Unlink text', 'unlink');
-          this.parentBlock.editEl.addEventListener('focus', () => {
-              toolbar.checkForLink();
-          });
-          this.parentBlock.editEl.addEventListener('viewChange', () => {
-              toolbar.checkForLink();
-          });
-          this.parentBlock.editEl.addEventListener('keydown', () => {
-              toolbar.debounceLinkCheck();
-          });
           this.unlinkBtn.addEventListener('click', function() {
               toolbar.unlink();
           });
           toolbar.container.append(this.unlinkBtn);
       }
 
-      checkForAnchorTag() {
+      checkForDeepTag(tag) {
           if (!sel) {
               var sel = window.getSelection();
           }
@@ -4880,33 +4885,40 @@
           }
           let contents = range.cloneContents();
           for (let theNode of contents.children) {
-              if (theNode.tagName.toLowerCase() == 'a') {
+              if (theNode.tagName.toLowerCase() == tag) {
                   return theNode;
               }
           }
           return false;
       }
 
-      checkForLink() {
-          let linkFound = false;
+      checkForTag(tag,btn) {
+          let found = false;
           let sel = window.getSelection();
           let range = sel.getRangeAt(0);
-          if (sel.anchorNode.parentElement.tagName.toLowerCase() == 'a' || sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
-              linkFound = true;
-          } else {
-              if (this.checkForAnchorTag()) {
-                  linkFound = true;
-              }
+          let anchor = sel.anchorNode.parentElement;
+          let focus = sel.focusNode.parentElement;
+          // Check that we're actually in the edit container
+          if (this.parentBlock.editEl.contains(anchor) && ( anchor.tagName.toLowerCase() == tag || focus.tagName.toLowerCase() == tag)) {
+              found = true;
           }
-          if (linkFound) {
-              this.unlinkBtn.removeAttribute('disabled');  
-          } else {
-              this.unlinkBtn.setAttribute('disabled', true);
+          switch (tag) {
+              case 'a':
+                  if (found || this.parentBlock.editEl.contains(anchor) && this.checkForDeepTag(tag)) {
+                      btn.removeAttribute('disabled');
+                  } else {
+                      btn.setAttribute('disabled', true);
+                  }
+                  break;
           }
       }
 
-      debounceLinkCheck = debounce(() => {
-          this.checkForLink();
+      checkFormatting() {
+          this.checkForTag('a', this.unlinkBtn);
+      }
+
+      debounceFormatting = debounce(() => {
+          this.checkFormatting();
       }, 350);
 
       returnCursor(sel, range) {
@@ -4917,7 +4929,20 @@
           }
           sel.removeAllRanges();
           sel.addRange(range);
-          this.checkForLink();
+          this.checkFormatting();
+      }
+
+      setFormattingChecks() {
+          let toolbar = this;
+          this.parentBlock.editEl.addEventListener('keydown', () => {
+              toolbar.debounceFormatting();
+          });
+          this.parentBlock.editEl.addEventListener('focusin', () => {
+              toolbar.checkFormatting();
+          });
+          this.parentBlock.contentContainer.addEventListener('viewChange', () => {
+              toolbar.checkFormatting();
+          });
       }
 
       toggleHtmlView() {
@@ -4939,7 +4964,7 @@
           }
           this.parentBlock.editEl.classList.toggle('flip');
           this.parentBlock.htmlEl.classList.toggle('flip');
-          this.parentBlock.dispatchEvent('viewChange');
+          this.parentBlock.contentContainer.dispatchEvent(new Event('viewChange'));
           this.parentBlock.focus();
       }
 
@@ -4950,8 +4975,8 @@
               link = sel.anchorNode.parentElement;
           } else if (sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
               link = sel.focusNode.parentElement;
-          } else if (this.checkForAnchorTag())
-              link = this.checkForAnchorTag();
+          } else if (this.checkForDeepTag('a'))
+              link = this.checkForDeepTag('a');
           if (link) {
               let oldRange = sel.getRangeAt(0);
               let range = new Range();
@@ -5006,16 +5031,28 @@
           return this.htmlEl.innerText;
       }
 
+      insideTag(tag) {
+          if (this.view == 'content') {
+              let sel = window.getSelection();
+              if (sel.anchorNode.parentElement.closest(tag) && sel.anchorNode.parentElement.closest('.editContainer') == this.editEl) {
+                  return true;
+              } else if (sel.focusNode.parentElement.closest(tag) && sel.focusNode.parentElement.closest('.editContainer') == this.editEl) {
+                  return true;
+              }
+          }
+          return false;
+      }
+
       keyboardShortcuts(e) {
           if (e.ctrlKey || e.metaKey) {
               if (e.shiftKey) {
                   switch(e.keyCode) {
                       case 79:
                           new SelectionWrapper(['ol', 'li'], this.view);
-                          break;
+                          return false;
                       case 85:
                           new SelectionWrapper(['ul','li'], this.view);
-                          break;
+                          return false;
                       case 73:
                           this.toolbar.addImage();
                           break;
@@ -5024,19 +5061,34 @@
                           return false;
                       case 49:
                           new SelectionWrapper('h1', this.view);
-                          break;
+                          return false;
                       case 50:
                           new SelectionWrapper('h2', this.view);
-                          break;
+                          return false;
                       case 51:
                           new SelectionWrapper('h3', this.view);
-                          break;
+                          return false;
                       case 52:
                           new SelectionWrapper('h4', this.view);
-                          break;
+                          return false;
                   }
               }
               switch (e.keyCode) {
+                  case 186:
+                      if (this.insideTag('ul') || this.insideTag('ol')) {
+                          e.preventDefault();
+                          document.execCommand('outdent');
+                          return false;
+                      }
+                      break;
+                  case 192:
+                  case 222:
+                      if (this.insideTag('ul') || this.insideTag('ol')) {
+                          e.preventDefault();
+                          document.execCommand('indent');
+                          return false;
+                      }
+                      break;
                   case 66: 
                       e.preventDefault();
                       new SelectionWrapper('strong', this.view);

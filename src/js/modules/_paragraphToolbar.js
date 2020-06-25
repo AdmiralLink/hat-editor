@@ -19,6 +19,7 @@ class ParagraphToolbar {
         this.addUnlinkButton();
         this.addHtmlView();
         this.addFocusShield();
+        this.setFormattingChecks();
         paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
     }
 
@@ -48,17 +49,19 @@ class ParagraphToolbar {
     }
 
     addFormattingButtons() {
-        let bold = new BrowserFormattingButton('Make selected text bold', 'bold', 'strong', this.parentBlock);
-        this.container.append(bold);
-        let italic = new BrowserFormattingButton('Make selected text italic', 'italic', 'em', this.parentBlock);
-        this.container.append(italic);
-        let underline = new BrowserFormattingButton('Make selected text underlined', 'underline', 'u', this.parentBlock);
-        this.container.append(underline);
-        let ul = new BrowserFormattingButton('Create ordered list', 'list-ul', ['ul', 'li'], this.parentBlock);
-        this.container.append(ul);
-        let ol = new BrowserFormattingButton('Create ordered list', 'list-ol', ['ol', 'li'], this.parentBlock);
-        this.container.append(ol);
-        this.contextButtons = [bold, italic, underline, ul, ol];
+        this.paragraphBtn = new BrowserFormattingButton('Make this a paragraph', 'paragraph', 'p', this.parentBlock);
+        this.container.append(this.paragraphBtn);
+        this.boldBtn = new BrowserFormattingButton('Toggle selected text bold', 'bold', 'strong', this.parentBlock);
+        this.container.append(this.boldBtn);
+        this.italicBtn = new BrowserFormattingButton('Toggle selected text italic', 'italic', 'em', this.parentBlock);
+        this.container.append(this.italicBtn);
+        this.underlineBtn = new BrowserFormattingButton('Toggle selected text underlined', 'underline', 'u', this.parentBlock);
+        this.container.append(this.underlineBtn);
+        this.ulBtn = new BrowserFormattingButton('Toggle ordered list', 'list-ul', ['ul', 'li'], this.parentBlock);
+        this.container.append(this.ulBtn);
+        this.olBtn = new BrowserFormattingButton('Toggle ordered list', 'list-ol', ['ol', 'li'], this.parentBlock);
+        this.container.append(this.olBtn);
+        this.contextButtons = [this.paragraphBtn, this.boldBtn, this.italicBtn, this.underlineBtn, this.ulBtn, this.olBtn];
     }
 
     addHeaderButton() {
@@ -170,22 +173,13 @@ class ParagraphToolbar {
     addUnlinkButton() {
         let toolbar = this;
         this.unlinkBtn = new DomButton('Unlink text', 'unlink');
-        this.parentBlock.editEl.addEventListener('focus', () => {
-            toolbar.checkForLink();
-        });
-        this.parentBlock.editEl.addEventListener('viewChange', () => {
-            toolbar.checkForLink();
-        });
-        this.parentBlock.editEl.addEventListener('keydown', () => {
-            toolbar.debounceLinkCheck();
-        });
         this.unlinkBtn.addEventListener('click', function() {
             toolbar.unlink();
         });
         toolbar.container.append(this.unlinkBtn);
     }
 
-    checkForAnchorTag() {
+    checkForDeepTag(tag) {
         if (!sel) {
             var sel = window.getSelection();
         }
@@ -194,33 +188,40 @@ class ParagraphToolbar {
         }
         let contents = range.cloneContents();
         for (let theNode of contents.children) {
-            if (theNode.tagName.toLowerCase() == 'a') {
+            if (theNode.tagName.toLowerCase() == tag) {
                 return theNode;
             }
         }
         return false;
     }
 
-    checkForLink() {
-        let linkFound = false;
+    checkForTag(tag,btn) {
+        let found = false;
         let sel = window.getSelection();
         let range = sel.getRangeAt(0);
-        if (sel.anchorNode.parentElement.tagName.toLowerCase() == 'a' || sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
-            linkFound = true;
-        } else {
-            if (this.checkForAnchorTag()) {
-                linkFound = true;
-            }
+        let anchor = sel.anchorNode.parentElement;
+        let focus = sel.focusNode.parentElement;
+        // Check that we're actually in the edit container
+        if (this.parentBlock.editEl.contains(anchor) && ( anchor.tagName.toLowerCase() == tag || focus.tagName.toLowerCase() == tag)) {
+            found = true;
         }
-        if (linkFound) {
-            this.unlinkBtn.removeAttribute('disabled');  
-        } else {
-            this.unlinkBtn.setAttribute('disabled', true);
+        switch (tag) {
+            case 'a':
+                if (found || this.parentBlock.editEl.contains(anchor) && this.checkForDeepTag(tag)) {
+                    btn.removeAttribute('disabled');
+                } else {
+                    btn.setAttribute('disabled', true);
+                }
+                break;
         }
     }
 
-    debounceLinkCheck = debounce(() => {
-        this.checkForLink();
+    checkFormatting() {
+        this.checkForTag('a', this.unlinkBtn);
+    }
+
+    debounceFormatting = debounce(() => {
+        this.checkFormatting();
     }, 350);
 
     returnCursor(sel, range) {
@@ -231,7 +232,20 @@ class ParagraphToolbar {
         }
         sel.removeAllRanges();
         sel.addRange(range);
-        this.checkForLink();
+        this.checkFormatting();
+    }
+
+    setFormattingChecks() {
+        let toolbar = this;
+        this.parentBlock.editEl.addEventListener('keydown', () => {
+            toolbar.debounceFormatting();
+        });
+        this.parentBlock.editEl.addEventListener('focusin', () => {
+            toolbar.checkFormatting();
+        });
+        this.parentBlock.contentContainer.addEventListener('viewChange', () => {
+            toolbar.checkFormatting();
+        });
     }
 
     toggleHtmlView() {
@@ -253,7 +267,7 @@ class ParagraphToolbar {
         }
         this.parentBlock.editEl.classList.toggle('flip');
         this.parentBlock.htmlEl.classList.toggle('flip');
-        this.parentBlock.dispatchEvent('viewChange');
+        this.parentBlock.contentContainer.dispatchEvent(new Event('viewChange'));
         this.parentBlock.focus();
     }
 
@@ -264,8 +278,8 @@ class ParagraphToolbar {
             link = sel.anchorNode.parentElement;
         } else if (sel.focusNode.parentElement.tagName.toLowerCase() == 'a') {
             link = sel.focusNode.parentElement;
-        } else if (this.checkForAnchorTag())
-            link = this.checkForAnchorTag();
+        } else if (this.checkForDeepTag('a'))
+            link = this.checkForDeepTag('a');
         if (link) {
             let oldRange = sel.getRangeAt(0);
             let range = new Range();

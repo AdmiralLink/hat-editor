@@ -1,9 +1,19 @@
+# 0.3.3
+## ADDED
+- Paragraph Button
+- Added keyboard shortcuts for indent/outdent
+## MODIFIED
+- ULs/Ols now bust out of headers properly
+- ULs/OLs now only format their parent block when they're a direct descendant of the element (we assume you're otherwise futzing with complicated HTML, in which case you should futz with the HTML)
+- Block-level tag names only show at first level of depth (otherwise, again, we assume you know what you're doing)
+
 # 0.3.2
 ## ADDED
 - Checkbox (lib)
 - LinkModal
 - Added Unlink button/functionality
 - Images/ to gitignore
+- Debounce (lib)
 ## MODIFIED
 - SelectionWrapper now accepts some parameters for tags
 - MiniModal now only has a "close" method, will throw "canceled" event if necessary

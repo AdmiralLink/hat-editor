@@ -212,12 +212,10 @@ fieldset {
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer {
   border-top: solid 1px #ddd;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
-  padding: 0;
-  padding-left: 5px;
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > *, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer blockquote, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer pre {
   position: relative;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4::before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p::before {
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > *:before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer blockquote:before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer pre:before {
   text-transform: uppercase;
   color: #999;
   font-size: 8px;
@@ -226,37 +224,41 @@ fieldset {
   top: 62%;
   transform: translateY(-50%);
 }
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
+  padding: 0;
+  padding-left: 5px;
+}
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4 {
   margin: 4px 0;
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1 {
   font-size: 30px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1::before {
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h1:before {
   content: "h1";
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2 {
   font-size: 24px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2::before {
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h2:before {
   content: "h2";
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3 {
   font-size: 20px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3::before {
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h3:before {
   content: "h3";
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4 {
   font-size: 18px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4::before {
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h4:before {
   content: "h4";
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
   margin: 2px 0;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p::before {
+.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > p:before {
   content: "p";
 }
 .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer img {

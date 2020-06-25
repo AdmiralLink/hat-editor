@@ -1,5 +1,6 @@
 $red: #B11
 $green: #171
+$font: "San Francisco","Helvetica Neue","Helvetica",sans-serif
 
 .sr-only
     width: 1px
@@ -52,7 +53,7 @@ fieldset
         line-height: 140%
     background: white
     padding: 5px
-    font-family: "San Francisco","Helvetica Neue","Helvetica",sans-serif
+    font-family: $font
     a.block
         width: 100%
         text-align: center
@@ -175,11 +176,9 @@ fieldset
                     transform: rotateX(0deg)
                     &.editContainer
                         border-top: solid 1px #ddd
-                        h1, h2, h3, h4, p
-                            padding: 0
-                            padding-left: 5px
+                        > *, blockquote, pre
                             position: relative
-                            &::before
+                            &:before
                                 text-transform: uppercase
                                 color: #999
                                 font-size: 8px
@@ -187,28 +186,31 @@ fieldset
                                 left: -7px
                                 top: 62%
                                 transform: translateY(-50%)
+                        h1, h2, h3, h4, p
+                            padding: 0
+                            padding-left: 5px
                         h1, h2, h3, h4
                             margin: 4px 0
                         h1
                             font-size: 30px
-                            &::before
-                                content: 'h1'
+                        > h1:before
+                            content: 'h1'
                         h2
                             font-size: 24px
-                            &::before
-                                content: 'h2'
+                        > h2:before
+                            content: 'h2'
                         h3
                             font-size: 20px
-                            &::before
-                                content: 'h3'
+                        > h3:before
+                            content: 'h3'
                         h4
                             font-size: 18px
-                            &::before
-                                content: 'h4'
+                        > h4:before
+                            content: 'h4'
                         p
                             margin: 2px 0
-                            &::before
-                                content: 'p'
+                        > p:before
+                            content: 'p'
                         img
                             max-width: 100%
                     &.htmlView
