@@ -3816,6 +3816,19 @@
               }
               return position;
           },
+          getContainer: function() {
+              return Elements.container;
+          },
+          getContents: function() {
+              let content = [];
+              for (let [key, value] of Object.entries(Blocks)) {
+                  let contents = value.getContents();
+                  if (!contents.settings.id) {
+                      contents.settings.id = key;
+                  }
+                  content.push(contents);
+              }            return content;
+          },
           removeBlock: function(block) {
               var blockId = block.el.id;
               if (BlockCount > 1){
@@ -3830,9 +3843,6 @@
                   }
               }
           },
-          getContainer: function() {
-              return Elements.container;
-          }
       };
       Internal.initialize(containerEl);
       return Interface;
@@ -3873,6 +3883,7 @@
                   mech.settings[key] = value;
               }
           });
+          return mech.settings;
       }
       
       toggleView(el, btn) {
@@ -4379,8 +4390,14 @@
           return this.el;
       }
 
-      getContent() {
-          return this.contentEl.innerHtml();
+      getContents() {
+          // This is absolutely just for documentation, you NEED to overwrite this method for your block
+          let content = {
+              content: this.contentEl.innerHtml(),
+              settings: this.mechanic.getValues(),
+              type: 'block'
+          };
+          return content;
       }
 
       getPosition() {
@@ -5198,7 +5215,7 @@
       }
 
       focus() {
-          if (this.view == undefined) {
+          if (this.view == undefined) {e;
               this.view = 'content';
               let starterP = new DomEl('p');
               this.editEl.append(starterP);
@@ -5210,12 +5227,17 @@
           }
       }
 
-      getContent() {
+      getContents() {
+          let content = {
+              settings: this.mechanic.getValues(),
+              type: 'paragraph'
+          };
           if (this.view == 'content') {
-              return this.getHtmlFromContent();
+              content.content = this.getHtmlFromContent();
           } else {
-              return this.getContentFromHtml();
+              content.content = this.getContentFromHtml();
           }
+          return content;
       }
 
       getHtmlFromContent() {
@@ -5318,13 +5340,13 @@
           editors: new Map()
       };
       let BlockRegistry = {
-          default: false,
           names: ['paragraph'],
           objects: {
               paragraph: ParagraphBlock
           }
       };
       let Options = {
+          'default': 'paragraph',
           'init': true,
           'selector': '.hat-editor'
       };
@@ -5338,7 +5360,7 @@
               }
           },
           getBlocks: function() {
-              return BlockRegistry.objects;
+              return BlockRegistry;
           },
           getEditor: function(el) {
               if (this.hasEditor(el)) {

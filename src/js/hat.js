@@ -10,13 +10,13 @@ window.HatRack = function(init, options) {
         editors: new Map()
     };
     let BlockRegistry = {
-        default: false,
         names: ['paragraph'],
         objects: {
             paragraph: ParagraphBlock
         }
     };
     let Options = {
+        'default': 'paragraph',
         'init': true,
         'selector': '.hat-editor'
     };
@@ -30,7 +30,7 @@ window.HatRack = function(init, options) {
             }
         },
         getBlocks: function() {
-            return BlockRegistry.objects;
+            return BlockRegistry;
         },
         getEditor: function(el) {
             if (this.hasEditor(el)) {

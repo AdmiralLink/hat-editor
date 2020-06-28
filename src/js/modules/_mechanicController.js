@@ -24,6 +24,7 @@ class MechanicController {
                 mech.settings[key] = value;
             }
         });
+        return mech.settings;
     }
     
     toggleView(el, btn) {

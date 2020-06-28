@@ -81,6 +81,20 @@ let Hat = function(containerEl) {
             }
             return position;
         },
+        getContainer: function() {
+            return Elements.container;
+        },
+        getContents: function() {
+            let content = [];
+            for (let [key, value] of Object.entries(Blocks)) {
+                let contents = value.getContents();
+                if (!contents.settings.id) {
+                    contents.settings.id = key;
+                }
+                content.push(contents);
+            };
+            return content;
+        },
         removeBlock: function(block) {
             var blockId = block.el.id;
             if (BlockCount > 1){
@@ -95,9 +109,6 @@ let Hat = function(containerEl) {
                 }
             }
         },
-        getContainer: function() {
-            return Elements.container;
-        }
     };
     Internal.initialize(containerEl);
     return Interface;

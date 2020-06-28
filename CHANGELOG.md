@@ -1,3 +1,9 @@
+# 0.3.7
+## ADDED
+- getContents() methods to block and hat in order to prep for content saving
+## MODIFIED
+- MechanicController getSettings() now returns the setings instead of just setting them
+
 # 0.3.6
 ## ADDED
 - Value collectors for mechanics

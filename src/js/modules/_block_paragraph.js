@@ -20,7 +20,7 @@ class ParagraphBlock extends Block {
     }
 
     focus() {
-        if (this.view == undefined) {
+        if (this.view == undefined) {e
             this.view = 'content';
             let starterP = new DomEl('p');
             this.editEl.append(starterP);
@@ -32,12 +32,17 @@ class ParagraphBlock extends Block {
         }
     }
 
-    getContent() {
+    getContents() {
+        let content = {
+            settings: this.mechanic.getValues(),
+            type: 'paragraph'
+        };
         if (this.view == 'content') {
-            return this.getHtmlFromContent();
+            content.content = this.getHtmlFromContent();
         } else {
-            return this.getContentFromHtml();
+            content.content = this.getContentFromHtml();
         }
+        return content;
     }
 
     getHtmlFromContent() {

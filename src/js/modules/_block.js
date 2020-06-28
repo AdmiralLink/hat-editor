@@ -141,8 +141,14 @@ class Block {
         return this.el;
     }
 
-    getContent() {
-        return this.contentEl.innerHtml();
+    getContents() {
+        // This is absolutely just for documentation, you NEED to overwrite this method for your block
+        let content = {
+            content: this.contentEl.innerHtml(),
+            settings: this.mechanic.getValues(),
+            type: 'block'
+        }
+        return content;
     }
 
     getPosition() {
