@@ -9,10 +9,21 @@ class MechanicController {
         this.parentBlock = block;
         this.container = new DomEl('div.mechanicsContainer');
         this.parentBlock.middleContainer.insertBefore(this.container, this.parentBlock.contentContainer);
+        this.mechanics = [];
+        this.settings = {};
     }
 
     add(mechanicObj) {
-        mechanicObj.init(this);
+        this.mechanics.push(mechanicObj.init(this));
+    }
+
+    getValues() {
+        let mech = this;
+        this.mechanics.forEach(function(mechanic) {
+            for (let [key, value] of Object.entries(mechanic.getValues())) {
+                mech.settings[key] = value;
+            }
+        });
     }
     
     toggleView(el, btn) {

@@ -12,7 +12,6 @@ class SettingsMechanic extends Mechanic {
     }
 
     focus() {
-        console.log('focused');
         this.idField.children[0].focus();
     }
 
@@ -22,7 +21,7 @@ class SettingsMechanic extends Mechanic {
         this.fields = [
             this.idField,
             this.classField,
-            new Checkbox('blockVisible', 'Visible', 'The block will not be visible. Hit spacebar to make it visible', 'The block will be visible. Hit spacebar to make it not visible', this.settings.blockVisible)
+            new Checkbox('blockVisible', 'Block is visible on frontend', 'The block will not be visible. Hit spacebar to make it visible', 'The block will be visible. Hit spacebar to make it not visible', this.settings.blockVisible)
         ];
     }
 

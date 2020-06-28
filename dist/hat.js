@@ -3858,10 +3858,21 @@
           this.parentBlock = block;
           this.container = new DomEl('div.mechanicsContainer');
           this.parentBlock.middleContainer.insertBefore(this.container, this.parentBlock.contentContainer);
+          this.mechanics = [];
+          this.settings = {};
       }
 
       add(mechanicObj) {
-          mechanicObj.init(this);
+          this.mechanics.push(mechanicObj.init(this));
+      }
+
+      getValues() {
+          let mech = this;
+          this.mechanics.forEach(function(mechanic) {
+              for (let [key, value] of Object.entries(mechanic.getValues())) {
+                  mech.settings[key] = value;
+              }
+          });
       }
       
       toggleView(el, btn) {
@@ -4148,6 +4159,7 @@
               e.preventDefault();
               Controller.toggleView(mechanic.div, this);
           });
+          return this;
       }
 
       registerBasicEvents() {
@@ -4212,7 +4224,6 @@
       }
 
       focus() {
-          console.log('focused');
           this.idField.children[0].focus();
       }
 
@@ -4222,7 +4233,7 @@
           this.fields = [
               this.idField,
               this.classField,
-              new Checkbox('blockVisible', 'Visible', 'The block will not be visible. Hit spacebar to make it visible', 'The block will be visible. Hit spacebar to make it not visible', this.settings.blockVisible)
+              new Checkbox('blockVisible', 'Block is visible on frontend', 'The block will not be visible. Hit spacebar to make it visible', 'The block will be visible. Hit spacebar to make it not visible', this.settings.blockVisible)
           ];
       }
 

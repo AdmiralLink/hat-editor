@@ -28,6 +28,7 @@ class Mechanic {
             e.preventDefault();
             Controller.toggleView(mechanic.div, this);
         });
+        return this;
     }
 
     registerBasicEvents() {

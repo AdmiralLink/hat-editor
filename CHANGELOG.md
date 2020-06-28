@@ -1,3 +1,12 @@
+# 0.3.6
+## ADDED
+- Value collectors for mechanics
+- getValues() for mechanicController
+## MODIFIED
+- Mechanic.init() now returns object
+## REMOVED
+- Extraneous logging
+
 # 0.3.5
 ## ADDED
 - Mechanic abstract and MechanicController classes for adding configuration panels to blocks
