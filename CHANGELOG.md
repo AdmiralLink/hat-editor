@@ -1,3 +1,11 @@
+# 0.3.10
+## ADDED
+- prefers-reduced-motion media query for transitions
+- button settings now use cursor: pointer
+## MODIFIED
+- Settings panels now come out the bottom (so text doesn't move)
+- Settings panels now have exact heights set in Javascript for transitions (fixes overlapping problem as margins are now exact)
+
 # 0.3.9
 ## MODIFIED
 - SelectionWrapper now much smarter about what is selected after modifying contents

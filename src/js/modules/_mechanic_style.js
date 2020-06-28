@@ -11,7 +11,6 @@ class StylesMechanic extends Mechanic {
     }
 
     focus() {
-        console.log('focused');
         this.backgroundColor.children[0].focus();
     }
 
