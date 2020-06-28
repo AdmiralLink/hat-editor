@@ -2,7 +2,7 @@ import Hat from './modules/_hat.js';
 import ParagraphBlock from './modules/_block_paragraph.js';
 import './../sass/hat.sass';
 
-window.HatRack = function(querySelector, options) {
+window.HatRack = function(init, options) {
     let EditorRegistry = {
         add: function(hatInstance) {
             this.editors[hatInstance.getContainer()] = hatInstance;
@@ -16,7 +16,14 @@ window.HatRack = function(querySelector, options) {
             paragraph: ParagraphBlock
         }
     };
+    let Options = {
+        'init': true,
+        'selector': '.hat-editor'
+    };
     let Interface = {   
+        createEditor: function(el) {
+            EditorRegistry.add(new Hat(el));
+        },
         getBlock: function(blockName) {
             if (Interface.hasBlock(blockName)) {
                 return BlockRegistry.objects[blockName];
@@ -42,11 +49,14 @@ window.HatRack = function(querySelector, options) {
             BlockRegistry.names.push(slug);
             BlockRegistry.objects[slug] = blockObj;
         },
-        start: function(querySelector, options) {
-            let query = querySelector || '.hat-editor';
-            Interface.options = options || {};
-            for (var el of document.querySelectorAll(query)) {
-                EditorRegistry.add(new Hat(el));
+        start: function(options) {
+            for (let [key, value] of Object.entries(options)) {
+                Options[key] = value;
+            };
+            if (Options.init) {
+                for (var el of document.querySelectorAll(Options.selector)) {
+                    Interface.createEditor(el)
+                }
             }
         }
     }

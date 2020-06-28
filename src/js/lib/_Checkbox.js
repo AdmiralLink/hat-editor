@@ -3,16 +3,16 @@ export default Checkbox;
 import DomEl from "./_DomEl";
 
 class Checkbox {
-    constructor(name, labelDisplay, altText, value) {
+    constructor(name, labelDisplay, altTextOff, altTextChecked, value) {
         let checked = (value) ? '[checked]' : '';
         this.box = new DomEl('input[type=checkbox][id=' + name + '][name=' + name + ']' + checked);
-        this.label = new DomEl('label[for=' + name + '][tabindex=0][describedby=Description' + name +'][title=' + altText +'].checkbox');
+        this.label = new DomEl('label[for=' + name + '][tabindex=0][describedby=Description' + name +'].checkbox');
         let notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#Description' + name);
-        notification.innerText = (value) ? 'Link currently opens in new tab. Press spacebar to disable this' : 'Link will not open in new tab. Press spacebar to have link open in new tab'; 
-        this.label.addEventListener('keydown', (e) => {
+        notification.innerText = (value) ? altTextChecked : altTextOff; 
+        this.label.addEventListener('keydown', function(e) {
             if (e.keyCode == 32) {
                 this.label.children[0].click();
-                notification.innerText = (this.label.children[0].checked) ? 'Link currently opens in new tab. Press spacebar to disable this' : 'Link will not open in new tab. Press spacebar to have link open in new tab';
+                notification.innerText = (this.label.children[0].checked) ? altTextChecked : altTextOff;
             }
         });
         this.checkOff = new DomEl('span.fas.fa-circle');

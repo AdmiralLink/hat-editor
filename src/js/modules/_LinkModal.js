@@ -39,7 +39,7 @@ class LinkModal extends MiniModal {
     createElements() {
         this.form = new DomEl('div#linkForm');
         this.hrefField = new InputField('linkHref', 'Link', 'https://google.com or tel:18009453669 or mailto:me@you.com', 'text', this.href);
-        this.blankField = new Checkbox('targetBlank', 'Open in new window', 'Select to have the link open in a new window/tab', this.blank);
+        this.blankField = new Checkbox('targetBlank', 'Open in new window', 'Link will not open in new tab. Press spacebar to have link open in new tab', 'Link currently opens in new tab. Press spacebar to disable this', this.blank);
         this.textField = new InputField('displayText', 'Text to display', false, 'text', this.text);   
         this.form.append(this.hrefField);
         this.form.append(this.textField);
@@ -57,9 +57,10 @@ class LinkModal extends MiniModal {
     }
 
     setDefaults() {
-        ['href','blank','text'].forEach((val) => {
-            if (!this[val]) {
-                this.val = false;
+        let Modal = this;
+        ['href','blank','text'].forEach(function(val) {
+            if (!Modal[val]) {
+                Modal.val = false;
             }
         });
     }

@@ -33,13 +33,13 @@ class ImageUploadModal extends MiniModal {
     addEvents() {
         let uploadModal = this;
         let label = this.label;
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
             label.addEventListener(eventName, function(e){e.preventDefault(); e.stopPropagation();}, false );
         });
-        ['dragenter','dragover'].forEach(eventName => {
+        ['dragenter','dragover'].forEach(function(eventName) {
             label.addEventListener(eventName, function(e){ label.classList.add('hovered')});
         });
-        ['dragleave','drop'].forEach(eventName=> {
+        ['dragleave','drop'].forEach(function(eventName) {
             label.addEventListener(eventName, function(e) { label.classList.remove('hovered')});
         });
         this.label.addEventListener('keydown', function(e) {
@@ -75,13 +75,13 @@ class ImageUploadModal extends MiniModal {
                     this.form.style.display = 'none';
                     let bar = new ProgressBar(this.modalContent);
                     let upload = new Ajax(url, data, bar);
-                    upload.addEventListener('success', (e) => {
+                    upload.addEventListener('success', function(e) {
                         bar.track.classList.add('success');
                         this.imageEl = new DomEl('img[src=' + e.target.getAttribute('imageUrl') + '][alt=' + e.target.getAttribute('altText') + ']');
                         this.modalContainer.dispatchEvent(new Event('uploaded'));
                         this.close();
                     });
-                    upload.addEventListener('failure', (e) => {  
+                    upload.addEventListener('failure', function(e) {  
                         bar.track.classList.add('failure');
                         this.uploading = false;
                         bar.track.remove();

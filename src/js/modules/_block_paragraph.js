@@ -5,6 +5,7 @@ import CursorFocus from '../lib/_CursorFocus';
 import DomEl from './../lib/_DomEl';
 import ParagraphToolbar from './_paragraphToolbar';
 import SelectionWrapper from '../lib/_SelectionWrapper';
+import StyleMechanic from './_mechanic_style';
 
 class ParagraphBlock extends Block {
     createElement() {
@@ -133,5 +134,10 @@ class ParagraphBlock extends Block {
                     break;
             }
         }
+    }
+
+    registerMechanics() {
+        super.registerMechanics();
+        this.mechanic.add(new StyleMechanic());
     }
 }

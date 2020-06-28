@@ -12,12 +12,12 @@ class ParagraphToolbar {
     constructor(paragraphBlock) {
         this.parentBlock = paragraphBlock;
         this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
+        this.addHtmlView();
         this.addFormattingButtons();
         this.addHeaderButton();
         this.addImageButton();
         this.addLinkButton();
         this.addUnlinkButton();
-        this.addHtmlView();
         this.addFocusShield();
         this.setFormattingChecks();
         paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
@@ -30,7 +30,7 @@ class ParagraphToolbar {
             if (timeout) {
                 clearTimeout(timeout);
             }
-            toolbar.contextButtons.forEach(el => {
+            toolbar.contextButtons.forEach(function(el) {
                 el.removeAttribute('disabled');
             });
         });
@@ -40,7 +40,7 @@ class ParagraphToolbar {
             But focusout fires before the next focusin, so we delay slightly */
             timeout = setTimeout(function() {
                 if (!toolbar.parentBlock.contentContainer.contains(document.activeElement)) {
-                    toolbar.contextButtons.forEach(el => {
+                    toolbar.contextButtons.forEach(function(el) {
                         el.setAttribute('disabled', 'disabled');
                     });
                 }
@@ -103,15 +103,15 @@ class ParagraphToolbar {
             } else if (anchorEl == focusEl && anchorEl.tagName.toLowerCase() == 'a') {
                 options.href = anchorEl.getAttribute('href');
                 options.blank = (anchorEl.getAttribute('target') == '_blank');
-            } else if (this.checkForAnchorTag()) {
-                let theTag = this.checkForAnchorTag();
+            } else if (this.checkForTag('a', this.unlinkBtn)) {
+                let theTag = this.checkForTag('a', this.unlinkBtn);
                 options.href = theTag.getAttribute('href');
                 options.blank = (theTag.getAttribute('target') == '_blank');
             }
         }
         let link = new LinkModal(options);
         let toolbar = this;
-        link.modalContainer.addEventListener('confirmed', (e) => {
+        link.modalContainer.addEventListener('confirmed', function(e) {
             toolbar.returnCursor(sel, range);
             let values = link.values;
             if (link.updateExisting) {
@@ -127,7 +127,7 @@ class ParagraphToolbar {
             }
             new SelectionWrapper('a', toolbar.parentBlock.view, values);
         });
-        link.modalContainer.addEventListener('canceled', (e) => {
+        link.modalContainer.addEventListener('canceled', function(e) {
             toolbar.returnCursor(sel, range);
         });
     }
@@ -137,7 +137,7 @@ class ParagraphToolbar {
         let range = sel.getRangeAt(0);
         let image = new ImageUploadModal();
         let toolbar = this;
-        image.modalContainer.addEventListener('uploaded', (e) => {
+        image.modalContainer.addEventListener('uploaded', function(e) {
             toolbar.returnCursor(sel, range);
             if (toolbar.parentBlock.view == 'content') {
                 document.execCommand('insertHTML', false, image.imageEl.outerHTML);
@@ -145,7 +145,7 @@ class ParagraphToolbar {
                 document.execCommand('insertText', false, image.imageEl.outerHTML);
             }
         });
-        image.modalContainer.addEventListener('canceled', (e) => {
+        image.modalContainer.addEventListener('canceled', function(e) {
             toolbar.returnCursor(sel, range);
         });
     }
@@ -198,7 +198,10 @@ class ParagraphToolbar {
     checkForTag(tag,btn) {
         let found = false;
         let sel = window.getSelection();
-        let range = sel.getRangeAt(0);
+        let range = false;
+        if (sel && sel.rangeCount > 0) {
+            range = sel.getRangeAt(0);
+        }
         let anchor = sel.anchorNode.parentElement;
         let focus = sel.focusNode.parentElement;
         // Check that we're actually in the edit container
@@ -220,10 +223,6 @@ class ParagraphToolbar {
         this.checkForTag('a', this.unlinkBtn);
     }
 
-    debounceFormatting = debounce(() => {
-        this.checkFormatting();
-    }, 350);
-
     returnCursor(sel, range) {
         if (this.parentBlock.view == 'content') { 
             this.parentBlock.editEl.focus();
@@ -237,13 +236,13 @@ class ParagraphToolbar {
 
     setFormattingChecks() {
         let toolbar = this;
-        this.parentBlock.editEl.addEventListener('keydown', () => {
-            toolbar.debounceFormatting();
-        });
-        this.parentBlock.editEl.addEventListener('focusin', () => {
+        this.parentBlock.editEl.addEventListener('keydown', debounce((e) => {
+            toolbar.checkFormatting();
+        }, 350));
+        this.parentBlock.editEl.addEventListener('focusin', function(e) {
             toolbar.checkFormatting();
         });
-        this.parentBlock.contentContainer.addEventListener('viewChange', () => {
+        this.parentBlock.contentContainer.addEventListener('viewChange', function(e) {
             toolbar.checkFormatting();
         });
     }

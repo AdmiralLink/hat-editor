@@ -31,7 +31,7 @@ class ProgressBar {
             this.notification.innerText = this.type + ' Complete';
             if (this.removeOnCompletion) {
                 let theBar = this;
-                setTimeout(() => { 
+                setTimeout(function() { 
                     theBar.track.remove();
                     theBar.notification.remove(); 
                 }, 500);

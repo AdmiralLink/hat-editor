@@ -48,12 +48,12 @@ The basics for handling image uploads can be found in upload.php
 - `⌘\ctrl` + `u`: Underline  
 - `⌘\ctrl` + `k`: Create/edit link
 - `⌘\ctrl` + `shift` + `i`: Insert image  
-- `⌘\ctrl` + `shift` + `k`: Unlink  
+- `⌘\ctrl` + `shift` + `k`: Unlink (visual mode only)
 - `⌘\ctrl` + `shift` + `1`: H1
 - `⌘\ctrl` + `shift` + `2`: H2
 - `⌘\ctrl` + `shift` + `3`: H3
 - `⌘\ctrl` + `shift` + `4`: H4 
 - `⌘\ctrl` + `shift` + `o`: Ordered List
 - `⌘\ctrl` + `shift` + `u`: Unordered List
-- `⌘\ctrl` + `'`: Indent (while in OL/UL)
-- `⌘\ctrl` + `;`: Outdent (while in OL/UL)  
+- `⌘\ctrl` + `'`: Indent (while in OL/UL in visual mode)
+- `⌘\ctrl` + `;`: Outdent (while in OL/UL in visual mode)  

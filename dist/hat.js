@@ -3852,6 +3852,61 @@
       }
   }
 
+  class MechanicController {
+      constructor(block) {
+          this.current = false;
+          this.parentBlock = block;
+          this.container = new DomEl('div.mechanicsContainer');
+          this.parentBlock.middleContainer.insertBefore(this.container, this.parentBlock.contentContainer);
+      }
+
+      add(mechanicObj) {
+          mechanicObj.init(this);
+      }
+      
+      toggleView(el, btn) {
+          let mech = this;
+          let current = this.current;
+          if (current && current == el) {
+              let remove = current;
+              current.dispatchEvent(new Event('close'));
+              this.current = false;
+              this.parentBlock.el.classList.remove('showMechanics');
+              this.parentBlock.settingsContainer.querySelectorAll('.active')[0].classList.remove('active');
+              setTimeout(function() {
+                  remove.classList.remove('show');
+              }, 600);
+              setTimeout(function(e) {
+                  mech.parentBlock.focus();
+              }, 0);
+              return false;
+          } else {
+              if (current) {
+                  this.container.classList.add('switch');
+                  setTimeout(function(e) {
+                      mech.parentBlock.settingsContainer.querySelectorAll('.active')[0].classList.remove('active');
+                      current.classList.remove('show');
+                      el.classList.add('show');   
+                      btn.classList.add('active');
+                      mech.container.classList.remove('switch');
+                      el.dispatchEvent(new Event('show'));
+                  }, 350);
+                  this.current = el;
+                  return true;
+              } 
+              this.current = el;   
+              this.current.classList.add('show');
+              this.parentBlock.el.classList.add('showMechanics');
+              btn.classList.add('active');
+              this.container.classList.remove('switch');
+              this.current.dispatchEvent(new Event('show'));
+              return true;
+          }
+      }
+
+
+  }
+
   class MiniModal {
       constructor(content, childClass=false) {
           this.confirmed = false;
@@ -3918,7 +3973,7 @@
               if (typeof(this.options.modalClass) == 'string') {
                   this.options.modalClass = [this.options.modalClass];
               }
-              this.options.modalClass.forEach((className) => {
+              this.options.modalClass.forEach(function(className) {
                   this.backgroundDiv.classList.add(className);
                   this.modalContainer.classList.add(className);
               });
@@ -4024,13 +4079,167 @@
       }
   }
 
+  class Checkbox {
+      constructor(name, labelDisplay, altTextOff, altTextChecked, value) {
+          let checked = (value) ? '[checked]' : '';
+          this.box = new DomEl('input[type=checkbox][id=' + name + '][name=' + name + ']' + checked);
+          this.label = new DomEl('label[for=' + name + '][tabindex=0][describedby=Description' + name +'].checkbox');
+          let notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#Description' + name);
+          notification.innerText = (value) ? altTextChecked : altTextOff; 
+          this.label.addEventListener('keydown', function(e) {
+              if (e.keyCode == 32) {
+                  this.label.children[0].click();
+                  notification.innerText = (this.label.children[0].checked) ? altTextChecked : altTextOff;
+              }
+          });
+          this.checkOff = new DomEl('span.fas.fa-circle');
+          this.checkOn = new DomEl('span.fas.fa-check-circle');
+          this.text = new DomEl('span');
+          this.text.innerText = labelDisplay;
+          this.label.append(this.box);
+          this.label.append(this.checkOff);
+          this.label.append(this.checkOn);
+          this.label.append(this.text);
+          return this.label;
+      }
+  }
+
+  class InputField {
+      constructor(id, labelName, placeholder, type, value) {
+          type = type || 'text';
+          value = value || '';
+          let inputString = 'input#' + id + '[name="' + id + '"][type="'+ type + '"]';
+          if (placeholder) {
+              inputString += '[placeholder="' + placeholder + '"]';
+          }
+          let input = new DomEl(inputString);
+          if (value) {
+              input.value = value;
+          }
+          let label = new DomEl('label[for="' + id + '"]');
+          label.innerText = labelName;
+          label.append(input);
+          return label; 
+      }
+  }
+
+  class Mechanic {
+      constructor(buttonSettings, className) {
+          this.button = new DomButton(buttonSettings.title, buttonSettings.icon, buttonSettings.class);
+          this.div = new DomEl('div.mechanics.' + className);
+          this.registerBasicEvents();
+          this.registerEvents();
+      }
+
+      focus() {
+          this.div.focus();
+      }
+
+      getValues() {
+          return this.settings;
+      }
+      
+      init(Controller) {
+          let mechanic = this;
+          this.controller = Controller;
+          Controller.parentBlock.settingsContainer.append(this.button);
+          Controller.container.append(this.div);
+          this.button.addEventListener('click', function(e) {
+              e.preventDefault();
+              Controller.toggleView(mechanic.div, this);
+          });
+      }
+
+      registerBasicEvents() {
+          let mech = this;
+          this.div.addEventListener('keydown', function(e) {
+              if (e.keyCode == 27) {
+                  e.preventDefault();
+                  mech.controller.toggleView(mech.div, mech.button);
+              }
+          });
+          this.div.addEventListener('close', function() {
+              mech.saveSettings();
+          });
+          this.div.addEventListener('show', function() {
+              mech.focus();
+          });
+      }
+
+      registerCloseButton() {
+          let mech = this;
+          this.closeButton = new DomButton('Close settings panel', false, 'closeBtn', 'Close');
+          mech.div.append(this.closeButton);
+          this.closeButton.addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              mech.controller.toggleView(mech.div, mech.button);
+          });
+      }
+
+      registerEvents() { }
+
+      registerFields() {
+          let mech = this;
+          if (this.fields && this.fields.length > 0) {
+              this.fields.forEach(function(field) {
+                  mech.div.append(field);
+              });
+          }
+          this.registerCloseButton();
+      }
+
+      saveSettings() {
+          let mech = this;
+          if (this.fields && this.fields.length > 0) {
+              this.fields.forEach(function(field) {
+                  field = field.children[0];
+                  if (field.getAttribute('type') == 'checkbox') {
+                      mech.settings[field.getAttribute('name')] = field.checked;
+                  } else {
+                      mech.settings[field.getAttribute('name')] = field.value;
+                  }
+              });
+          }
+      }
+  }
+
+  class SettingsMechanic extends Mechanic {
+      constructor() {
+          super({title: 'Block settings', icon: 'cogs', class: 'settingsBtn'}, 'settingsDiv');
+          this.setFields();
+          this.registerFields();
+      }
+
+      focus() {
+          console.log('focused');
+          this.idField.children[0].focus();
+      }
+
+      setFields() {
+          this.idField = new InputField('id', 'Block ID', 'AwesomeBlock', this.settings.id);
+          this.classField = new InputField('class', 'Block classes', 'Space-separated list of classes', 'text', this.settings.class);
+          this.fields = [
+              this.idField,
+              this.classField,
+              new Checkbox('blockVisible', 'Visible', 'The block will not be visible. Hit spacebar to make it visible', 'The block will be visible. Hit spacebar to make it not visible', this.settings.blockVisible)
+          ];
+      }
+
+      settings = {
+          blockVisible: true,
+          class: false,
+          id: false,
+      }
+  }
+
   class Block {
       constructor(hat) {
           this.setup();
           this.editor = hat;
           this.createElement();
-          this.registerSettings();
           this.blockRegistration();
+          this.registerMechanics();
           this.addGlobalEvents();
           this.addEvents();
       }
@@ -4048,7 +4257,6 @@
           this.blockControlsContainer.append(this.upButton);
           this.blockControlsContainer.append(this.moveButton);
           this.blockControlsContainer.append(this.downButton);
-
           this.deleteButton = new DomButton('Delete block', 'trash-alt', 'deleteBtn');
           this.settingsContainer.append(this.deleteButton);
       }
@@ -4115,7 +4323,7 @@
               down.removeAttribute('disabled');
           }
           if (this.position.count == 1) {
-              this.deleteButton.setAttribute('disabled', '');
+      this.deleteButton.setAttribute('disabled', '');
               grip.setAttribute('disabled','');
           } else {
               this.deleteButton.removeAttribute('disabled');
@@ -4183,23 +4391,27 @@
           target.classList.add('moving-' + opposite);
           setTimeout(function() {
               block.el.classList.remove('moving-' + direction);
-              target.classList.remove('moving-' + opposite);
+          target.classList.remove('moving-' + opposite);
               block.editor.getBlockContainer().insertBefore(block.el, insertPoint);
               block.editor.fireEvent('blockChanged');
               block.focus();
           }, 200);
       }
 
-      registerSettings() {}
+      registerMechanics() {
+          this.mechanic = new MechanicController(this);
+          this.mechanic.add(new SettingsMechanic());
+      }
 
       setup() {
-          this.keysDown = [];
           this.el = new DomEl('div.block');
           this.blockControlsContainer = new DomEl('div[aria-label="Block Controls"]');
+          this.middleContainer = new DomEl('div.contentSection');
           this.contentContainer = new DomEl('div');
+          this.middleContainer.append(this.contentContainer);
           this.settingsContainer = new DomEl('div[aria-role="tablist"][aria-label="Block settings]');
           this.el.append(this.blockControlsContainer);
-          this.el.append(this.contentContainer);
+          this.el.append(this.middleContainer);
           this.el.append(this.settingsContainer);
           this.addBlockControls();
       }
@@ -4331,33 +4543,20 @@
       }
   }
 
-  const debounce = (func, wait) => {
-      let timeout;
-      
-      // This is the function that is returned and will be executed many times
-      // We spread (...args) to capture any number of parameters we want to pass
-      return function executedFunction(...args) {
-      
-          // The callback function to be executed after 
-          // the debounce time has elapsed
-          const later = () => {
-          // null timeout to indicate the debounce ended
-          timeout = null;
-          
-          // Execute the callback
-          func(...args);
-          };
-          // This will reset the waiting every function execution.
-          // This is the step that prevents the function from
-          // being executed because it will never reach the 
-          // inside of the previous setTimeout  
-          clearTimeout(timeout);
-          
-          // Restart the debounce waiting period.
-          // setTimeout returns a truthy value (it differs in web vs Node)
-          timeout = setTimeout(later, wait);
-      };
-  };
+  function debounce(func, wait, immediate) {
+      var timeout;
+  	return function() {
+  		var context = this, args = arguments;
+  		var later = function() {
+  			timeout = null;
+  			if (!immediate) func.apply(context, args);
+  		};
+  		var callNow = immediate && !timeout;
+  		clearTimeout(timeout);
+  		timeout = setTimeout(later, wait);
+  		if (callNow) func.apply(context, args);
+  	};
+  }
 
   class ErrorModal extends MiniModal {
       constructor(errorMessage) {
@@ -4393,9 +4592,9 @@
           xhr.responseType = 'json';
           xhr.open('POST', url);
           xhr.send(fd);
-          xhr.onerror = () => { new ErrorModal('An error occurred during upload.'); };
+          xhr.onerror = function() { new ErrorModal('An error occurred during upload.'); };
           let ajax = this;
-          xhr.onreadystatechange = () => {
+          xhr.onreadystatechange = function() {
               if (xhr.readyState === 4) {
                   if (xhr.status === 200) {
                       if (xhr.response.type == 'error') {
@@ -4433,25 +4632,6 @@
       }
   }
 
-  class InputField {
-      constructor(id, labelName, placeholder, type, value) {
-          type = type || 'text';
-          value = value || '';
-          let inputString = 'input#' + id + '[name="' + id + '"][type="'+ type + '"]';
-          if (placeholder) {
-              inputString += '[placeholder="' + placeholder + '"]';
-          }
-          let input = new DomEl(inputString);
-          if (value) {
-              input.value = value;
-          }
-          let label = new DomEl('label[for="' + id + '"]');
-          label.innerText = labelName;
-          label.append(input);
-          return label; 
-      }
-  }
-
   class ProgressBar {
       constructor(target, removeOnCompletion, type) {
           this.type = type || 'Upload';
@@ -4481,7 +4661,7 @@
               this.notification.innerText = this.type + ' Complete';
               if (this.removeOnCompletion) {
                   let theBar = this;
-                  setTimeout(() => { 
+                  setTimeout(function() { 
                       theBar.track.remove();
                       theBar.notification.remove(); 
                   }, 500);
@@ -4526,13 +4706,13 @@
       addEvents() {
           let uploadModal = this;
           let label = this.label;
-          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
               label.addEventListener(eventName, function(e){e.preventDefault(); e.stopPropagation();}, false );
           });
-          ['dragenter','dragover'].forEach(eventName => {
+          ['dragenter','dragover'].forEach(function(eventName) {
               label.addEventListener(eventName, function(e){ label.classList.add('hovered');});
           });
-          ['dragleave','drop'].forEach(eventName=> {
+          ['dragleave','drop'].forEach(function(eventName) {
               label.addEventListener(eventName, function(e) { label.classList.remove('hovered');});
           });
           this.label.addEventListener('keydown', function(e) {
@@ -4568,13 +4748,13 @@
                       this.form.style.display = 'none';
                       let bar = new ProgressBar(this.modalContent);
                       let upload = new Ajax(url, data, bar);
-                      upload.addEventListener('success', (e) => {
+                      upload.addEventListener('success', function(e) {
                           bar.track.classList.add('success');
                           this.imageEl = new DomEl('img[src=' + e.target.getAttribute('imageUrl') + '][alt=' + e.target.getAttribute('altText') + ']');
                           this.modalContainer.dispatchEvent(new Event('uploaded'));
                           this.close();
                       });
-                      upload.addEventListener('failure', (e) => {  
+                      upload.addEventListener('failure', function(e) {  
                           bar.track.classList.add('failure');
                           this.uploading = false;
                           bar.track.remove();
@@ -4622,31 +4802,6 @@
       }
   }
 
-  class Checkbox {
-      constructor(name, labelDisplay, altText, value) {
-          let checked = (value) ? '[checked]' : '';
-          this.box = new DomEl('input[type=checkbox][id=' + name + '][name=' + name + ']' + checked);
-          this.label = new DomEl('label[for=' + name + '][tabindex=0][describedby=Description' + name +'][title=' + altText +'].checkbox');
-          let notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#Description' + name);
-          notification.innerText = (value) ? 'Link currently opens in new tab. Press spacebar to disable this' : 'Link will not open in new tab. Press spacebar to have link open in new tab'; 
-          this.label.addEventListener('keydown', (e) => {
-              if (e.keyCode == 32) {
-                  this.label.children[0].click();
-                  notification.innerText = (this.label.children[0].checked) ? 'Link currently opens in new tab. Press spacebar to disable this' : 'Link will not open in new tab. Press spacebar to have link open in new tab';
-              }
-          });
-          this.checkOff = new DomEl('span.fas.fa-circle');
-          this.checkOn = new DomEl('span.fas.fa-check-circle');
-          this.text = new DomEl('span');
-          this.text.innerText = labelDisplay;
-          this.label.append(this.box);
-          this.label.append(this.checkOff);
-          this.label.append(this.checkOn);
-          this.label.append(this.text);
-          return this.label;
-      }
-  }
-
   class LinkModal extends MiniModal {
       constructor(details) {
           super(false, true);
@@ -4680,7 +4835,7 @@
       createElements() {
           this.form = new DomEl('div#linkForm');
           this.hrefField = new InputField('linkHref', 'Link', 'https://google.com or tel:18009453669 or mailto:me@you.com', 'text', this.href);
-          this.blankField = new Checkbox('targetBlank', 'Open in new window', 'Select to have the link open in a new window/tab', this.blank);
+          this.blankField = new Checkbox('targetBlank', 'Open in new window', 'Link will not open in new tab. Press spacebar to have link open in new tab', 'Link currently opens in new tab. Press spacebar to disable this', this.blank);
           this.textField = new InputField('displayText', 'Text to display', false, 'text', this.text);   
           this.form.append(this.hrefField);
           this.form.append(this.textField);
@@ -4698,9 +4853,10 @@
       }
 
       setDefaults() {
-          ['href','blank','text'].forEach((val) => {
-              if (!this[val]) {
-                  this.val = false;
+          let Modal = this;
+          ['href','blank','text'].forEach(function(val) {
+              if (!Modal[val]) {
+                  Modal.val = false;
               }
           });
       }
@@ -4710,12 +4866,12 @@
       constructor(paragraphBlock) {
           this.parentBlock = paragraphBlock;
           this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
+          this.addHtmlView();
           this.addFormattingButtons();
           this.addHeaderButton();
           this.addImageButton();
           this.addLinkButton();
           this.addUnlinkButton();
-          this.addHtmlView();
           this.addFocusShield();
           this.setFormattingChecks();
           paragraphBlock.contentContainer.insertBefore(this.container, paragraphBlock.contentEl);
@@ -4728,7 +4884,7 @@
               if (timeout) {
                   clearTimeout(timeout);
               }
-              toolbar.contextButtons.forEach(el => {
+              toolbar.contextButtons.forEach(function(el) {
                   el.removeAttribute('disabled');
               });
           });
@@ -4738,7 +4894,7 @@
               But focusout fires before the next focusin, so we delay slightly */
               timeout = setTimeout(function() {
                   if (!toolbar.parentBlock.contentContainer.contains(document.activeElement)) {
-                      toolbar.contextButtons.forEach(el => {
+                      toolbar.contextButtons.forEach(function(el) {
                           el.setAttribute('disabled', 'disabled');
                       });
                   }
@@ -4800,15 +4956,15 @@
               } else if (anchorEl == focusEl && anchorEl.tagName.toLowerCase() == 'a') {
                   options.href = anchorEl.getAttribute('href');
                   options.blank = (anchorEl.getAttribute('target') == '_blank');
-              } else if (this.checkForAnchorTag()) {
-                  let theTag = this.checkForAnchorTag();
+              } else if (this.checkForTag('a', this.unlinkBtn)) {
+                  let theTag = this.checkForTag('a', this.unlinkBtn);
                   options.href = theTag.getAttribute('href');
                   options.blank = (theTag.getAttribute('target') == '_blank');
               }
           }
           let link = new LinkModal(options);
           let toolbar = this;
-          link.modalContainer.addEventListener('confirmed', (e) => {
+          link.modalContainer.addEventListener('confirmed', function(e) {
               toolbar.returnCursor(sel, range);
               let values = link.values;
               if (link.updateExisting) {
@@ -4824,7 +4980,7 @@
               }
               new SelectionWrapper('a', toolbar.parentBlock.view, values);
           });
-          link.modalContainer.addEventListener('canceled', (e) => {
+          link.modalContainer.addEventListener('canceled', function(e) {
               toolbar.returnCursor(sel, range);
           });
       }
@@ -4834,7 +4990,7 @@
           let range = sel.getRangeAt(0);
           let image = new ImageUploadModal();
           let toolbar = this;
-          image.modalContainer.addEventListener('uploaded', (e) => {
+          image.modalContainer.addEventListener('uploaded', function(e) {
               toolbar.returnCursor(sel, range);
               if (toolbar.parentBlock.view == 'content') {
                   document.execCommand('insertHTML', false, image.imageEl.outerHTML);
@@ -4842,7 +4998,7 @@
                   document.execCommand('insertText', false, image.imageEl.outerHTML);
               }
           });
-          image.modalContainer.addEventListener('canceled', (e) => {
+          image.modalContainer.addEventListener('canceled', function(e) {
               toolbar.returnCursor(sel, range);
           });
       }
@@ -4895,7 +5051,10 @@
       checkForTag(tag,btn) {
           let found = false;
           let sel = window.getSelection();
-          let range = sel.getRangeAt(0);
+          let range = false;
+          if (sel && sel.rangeCount > 0) {
+              range = sel.getRangeAt(0);
+          }
           let anchor = sel.anchorNode.parentElement;
           let focus = sel.focusNode.parentElement;
           // Check that we're actually in the edit container
@@ -4917,10 +5076,6 @@
           this.checkForTag('a', this.unlinkBtn);
       }
 
-      debounceFormatting = debounce(() => {
-          this.checkFormatting();
-      }, 350);
-
       returnCursor(sel, range) {
           if (this.parentBlock.view == 'content') { 
               this.parentBlock.editEl.focus();
@@ -4934,13 +5089,13 @@
 
       setFormattingChecks() {
           let toolbar = this;
-          this.parentBlock.editEl.addEventListener('keydown', () => {
-              toolbar.debounceFormatting();
-          });
-          this.parentBlock.editEl.addEventListener('focusin', () => {
+          this.parentBlock.editEl.addEventListener('keydown', debounce((e) => {
+              toolbar.checkFormatting();
+          }, 350));
+          this.parentBlock.editEl.addEventListener('focusin', function(e) {
               toolbar.checkFormatting();
           });
-          this.parentBlock.contentContainer.addEventListener('viewChange', () => {
+          this.parentBlock.contentContainer.addEventListener('viewChange', function(e) {
               toolbar.checkFormatting();
           });
       }
@@ -4987,6 +5142,35 @@
               sel.removeAllRanges();
               sel.addRange(oldRange);
           }
+      }
+  }
+
+  class StylesMechanic extends Mechanic {
+      constructor() {
+          super({title: 'Block styles', icon: 'paint-brush', class: 'styleBtn'}, 'styleDiv');
+          this.setFields();
+          this.registerFields();
+      }
+
+      focus() {
+          console.log('focused');
+          this.backgroundColor.children[0].focus();
+      }
+
+      setFields() {
+          this.backgroundColor = new InputField('backgroundColor', 'Background color', '#FFF', 'text', this.settings.backgroundColor);
+          this.textColor = new InputField('textColor', 'Text color', '#000', 'text', this.settings.textColor);
+          //TODO: Version 2.0
+          //this.background = new Checkbox('background', 'Has Background', 'There is no background set. Hit the space bar to set one', 'Hit the spacebar to unset the current background', this.hasBackground); /*
+          this.fields = [
+              this.backgroundColor,
+              this.textColor
+          ];
+      }
+
+      settings = {
+          backgroundColor: false,
+          textColor: false
       }
   }
 
@@ -5108,9 +5292,14 @@
               }
           }
       }
+
+      registerMechanics() {
+          super.registerMechanics();
+          this.mechanic.add(new StylesMechanic());
+      }
   }
 
-  window.HatRack = function(querySelector, options) {
+  window.HatRack = function(init, options) {
       let EditorRegistry = {
           add: function(hatInstance) {
               this.editors[hatInstance.getContainer()] = hatInstance;
@@ -5124,7 +5313,14 @@
               paragraph: ParagraphBlock
           }
       };
+      let Options = {
+          'init': true,
+          'selector': '.hat-editor'
+      };
       let Interface = {   
+          createEditor: function(el) {
+              EditorRegistry.add(new Hat(el));
+          },
           getBlock: function(blockName) {
               if (Interface.hasBlock(blockName)) {
                   return BlockRegistry.objects[blockName];
@@ -5150,11 +5346,13 @@
               BlockRegistry.names.push(slug);
               BlockRegistry.objects[slug] = blockObj;
           },
-          start: function(querySelector, options) {
-              let query = querySelector || '.hat-editor';
-              Interface.options = options || {};
-              for (var el of document.querySelectorAll(query)) {
-                  EditorRegistry.add(new Hat(el));
+          start: function(options) {
+              for (let [key, value] of Object.entries(options)) {
+                  Options[key] = value;
+              }            if (Options.init) {
+                  for (var el of document.querySelectorAll(Options.selector)) {
+                      Interface.createEditor(el);
+                  }
               }
           }
       };

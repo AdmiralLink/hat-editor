@@ -20,9 +20,9 @@ class Ajax {
         xhr.responseType = 'json';
         xhr.open('POST', url);
         xhr.send(fd);
-        xhr.onerror = () => { new ErrorModal('An error occurred during upload.'); }
+        xhr.onerror = function() { new ErrorModal('An error occurred during upload.'); }
         let ajax = this;
-        xhr.onreadystatechange = () => {
+        xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
                     if (xhr.response.type == 'error') {

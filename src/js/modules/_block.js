@@ -2,15 +2,17 @@ export default Block;
 
 import DomEl from './../lib/_DomEl';
 import DomButton from './../lib/_DomButton';
+import MechanicController from './_mechanicController';
 import MiniModal from './../lib/_MiniModal';
+import SettingsMechanic from './_mechanic_settings';
 
 class Block {
     constructor(hat) {
         this.setup();
         this.editor = hat;
         this.createElement();
-        this.registerSettings();
         this.blockRegistration();
+        this.registerMechanics();
         this.addGlobalEvents();
         this.addEvents();
     }
@@ -28,7 +30,6 @@ class Block {
         this.blockControlsContainer.append(this.upButton);
         this.blockControlsContainer.append(this.moveButton);
         this.blockControlsContainer.append(this.downButton);
-
         this.deleteButton = new DomButton('Delete block', 'trash-alt', 'deleteBtn');
         this.settingsContainer.append(this.deleteButton);
     }
@@ -95,7 +96,7 @@ class Block {
             down.removeAttribute('disabled')
         }
         if (this.position.count == 1) {
-            this.deleteButton.setAttribute('disabled', '');
+    this.deleteButton.setAttribute('disabled', '');
             grip.setAttribute('disabled','');
         } else {
             this.deleteButton.removeAttribute('disabled');
@@ -163,23 +164,27 @@ class Block {
         target.classList.add('moving-' + opposite);
         setTimeout(function() {
             block.el.classList.remove('moving-' + direction);
-            target.classList.remove('moving-' + opposite);
+        target.classList.remove('moving-' + opposite);
             block.editor.getBlockContainer().insertBefore(block.el, insertPoint);
             block.editor.fireEvent('blockChanged');
             block.focus();
         }, 200);
     }
 
-    registerSettings() {}
+    registerMechanics() {
+        this.mechanic = new MechanicController(this);
+        this.mechanic.add(new SettingsMechanic());
+    }
 
     setup() {
-        this.keysDown = [];
         this.el = new DomEl('div.block')
         this.blockControlsContainer = new DomEl('div[aria-label="Block Controls"]');
+        this.middleContainer = new DomEl('div.contentSection');
         this.contentContainer = new DomEl('div');
+        this.middleContainer.append(this.contentContainer);
         this.settingsContainer = new DomEl('div[aria-role="tablist"][aria-label="Block settings]');
         this.el.append(this.blockControlsContainer);
-        this.el.append(this.contentContainer);
+        this.el.append(this.middleContainer);
         this.el.append(this.settingsContainer);
         this.addBlockControls();
     }

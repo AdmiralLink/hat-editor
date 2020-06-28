@@ -1,3 +1,17 @@
+# 0.3.5
+## ADDED
+- Mechanic abstract and MechanicController classes for adding configuration panels to blocks
+- StyleMechanic and SettingsMechanic
+## MODIFIED
+- HatRack.start() now requires just a single Pptions parameter
+- Keyboard shortcut fixes (noting which only work in visual mode)
+- Swapped out arrow functions for regularly anonymous functions because Safari *still* doesn't support arrow functions
+- Checkbox class now includes altText for for checked and nonchecked states
+- Rewrote debounce function to work in Safari
+- Fixed defaults in modal not scoping properly
+- Moved HTML view toggle to first position to make DOM ordering make sense (since all other buttons are disabled when the block is not selected, that's the first button you'll navigtate to, so might as well make it first in the DOM order)
+- Refactored form CSS into a mixin so we can use it in modals AND panels
+
 # 0.3.4
 ## MODIFIED
 - Updated readme to include indent/outdent shortcuts

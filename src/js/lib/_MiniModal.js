@@ -69,7 +69,7 @@ class MiniModal {
             if (typeof(this.options.modalClass) == 'string') {
                 this.options.modalClass = [this.options.modalClass];
             }
-            this.options.modalClass.forEach((className) => {
+            this.options.modalClass.forEach(function(className) {
                 this.backgroundDiv.classList.add(className);
                 this.modalContainer.classList.add(className);
             });

@@ -90,6 +90,89 @@ fieldset {
   display: grid;
   grid-template-columns: 30px auto 30px;
   border-radius: 10px;
+  transition: margin 0.6s cubic-bezier(0.48, -0.335, 0.535, 1.315);
+  transition-timing-function: cubic-bezier(0.48, -0.335, 0.535, 1.315);
+}
+.hat-editor .block .mechanicsContainer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.8s;
+  width: calc( 100% - 70px);
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  background: #ccc;
+  height: auto;
+  z-index: 1;
+}
+.hat-editor .block .mechanicsContainer div {
+  padding: 30px 20px 25px;
+  display: none;
+  transition: opacity 0.4s;
+}
+.hat-editor .block .mechanicsContainer div label {
+  font-weight: bold;
+  font-size: 14px;
+  display: block;
+  margin: 10px auto;
+  width: 80%;
+}
+.hat-editor .block .mechanicsContainer div label input[type=text] {
+  display: block;
+  font-size: 16px;
+  padding: 3px;
+  margin: 2px 0;
+  width: 100%;
+}
+.hat-editor .block .mechanicsContainer div label.checkbox {
+  cursor: pointer;
+}
+.hat-editor .block .mechanicsContainer div label.checkbox svg {
+  display: none;
+  position: relative;
+  top: 3px;
+  margin-right: 4px;
+}
+.hat-editor .block .mechanicsContainer div label.checkbox input {
+  display: none;
+}
+.hat-editor .block .mechanicsContainer div label.checkbox input ~ svg {
+  font-size: 20px;
+}
+.hat-editor .block .mechanicsContainer div label.checkbox input ~ svg:first-of-type {
+  display: inline-block;
+  color: #666;
+}
+.hat-editor .block .mechanicsContainer div label.checkbox input:checked ~ svg:first-of-type {
+  display: none;
+}
+.hat-editor .block .mechanicsContainer div label.checkbox input:checked ~ svg:last-of-type {
+  display: inline-block;
+  color: #171;
+}
+.hat-editor .block .mechanicsContainer div.show {
+  display: block;
+}
+.hat-editor .block .mechanicsContainer div .closeBtn {
+  display: block;
+  margin: 0 auto;
+}
+.hat-editor .block.showMechanics {
+  margin-top: 100px;
+  transition: margin 0.6s cubic-bezier(0.48, -0.335, 0.535, 1.315);
+}
+.hat-editor .block.showMechanics .mechanicsContainer {
+  max-height: 1000px;
+  transition: max-height 1.8s, top 0.4s;
+}
+.hat-editor .block.showMechanics .mechanicsContainer.switch {
+  top: 25px;
+  transition: max-height 1.8s, top 0.4s;
+}
+.hat-editor .block.showMechanics .mechanicsContainer.switch div {
+  transition: opacity 0.4s;
+  opacity: 0.2;
 }
 .hat-editor .block.moving-down {
   transition: transform 0.3s;
@@ -130,6 +213,12 @@ fieldset {
   border: 0;
   width: 31px;
   height: 31px;
+  transition: background 0.4s, color 0.4s;
+}
+.hat-editor .block div[aria-label="Block settings"] button.active {
+  background: #4b0000;
+  color: white;
+  transition: background 0.4s, color 0.4s;
 }
 .hat-editor .block div[aria-label="Block settings"] button svg {
   font-size: 12px;
@@ -143,6 +232,9 @@ fieldset {
 .hat-editor .block div[aria-label="Block settings"] button:disabled {
   cursor: not-allowed;
   background: #DDD !important;
+}
+.hat-editor .block div[aria-label="Block settings"] button:disabled:focus {
+  border: 2px dashed #4b0000;
 }
 .hat-editor .block a.settings {
   background-color: #999;
@@ -162,6 +254,7 @@ fieldset {
   position: relative;
 }
 .hat-editor .block.paragraph .toolbar {
+  background: white;
   vertical-align: middle;
 }
 .hat-editor .block.paragraph .toolbar button {
@@ -193,11 +286,15 @@ fieldset {
   color: #ccc;
   cursor: not-allowed;
 }
-.hat-editor .block.paragraph .contentContainer {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) {
+  position: relative;
+  z-index: 2;
+}
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer {
   position: relative;
   transform-style: perserve-3d;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true] {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true] {
   min-height: 100px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -209,13 +306,13 @@ fieldset {
   transform-origin: center;
   transform: rotateX(0deg);
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer {
   border-top: solid 1px #ddd;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > *, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer blockquote, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer pre {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer > *, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer blockquote, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer pre {
   position: relative;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > *:before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer blockquote:before, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer pre:before {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer > *:before, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer blockquote:before, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer pre:before {
   text-transform: uppercase;
   color: #999;
   font-size: 8px;
@@ -224,54 +321,54 @@ fieldset {
   top: 62%;
   transform: translateY(-50%);
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h4, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer p {
   padding: 0;
   padding-left: 5px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4 {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h1, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h2, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h3, .hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h4 {
   margin: 4px 0;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h1 {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h1 {
   font-size: 30px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h1:before {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer > h1:before {
   content: "h1";
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h2 {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h2 {
   font-size: 24px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h2:before {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer > h2:before {
   content: "h2";
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h3 {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h3 {
   font-size: 20px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h3:before {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer > h3:before {
   content: "h3";
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer h4 {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer h4 {
   font-size: 18px;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > h4:before {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer > h4:before {
   content: "h4";
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer p {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer p {
   margin: 2px 0;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer > p:before {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer > p:before {
   content: "p";
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].editContainer img {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].editContainer img {
   max-width: 100%;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].htmlView {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].htmlView {
   background: #eee;
   font-family: monospace;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].htmlView p {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].htmlView p {
   margin: 0;
 }
-.hat-editor .block.paragraph .contentContainer div[contenteditable=true].flip {
+.hat-editor .block.paragraph .contentSection > div:nth-of-type(2) .contentContainer div[contenteditable=true].flip {
   position: absolute;
   top: 0;
   left: 0;
