@@ -1,3 +1,8 @@
+# 0.3.8
+## MODIFIED
+- HatRack is now Hat, what was Hat is now Editor, for comprehension's sake
+- Editor now pulls default block from Hat
+
 # 0.3.7
 ## ADDED
 - getContents() methods to block and hat in order to prep for content saving

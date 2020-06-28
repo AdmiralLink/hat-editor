@@ -3737,7 +3737,7 @@
       }
   }
 
-  let Hat = function(containerEl) {
+  let Editor = function(containerEl) {
       let Blocks = [];
       let BlockCount = 0;
       let Elements = {
@@ -3782,8 +3782,8 @@
           } 
       };
       let Interface = {
-          addBlock: function(focus=true,position=false, type='paragraph') {
-              let blockClass = window.HatRack.getBlock(type);
+          addBlock: function(focus=true,position=false, type=window.Hat.getDefault()) {
+              let blockClass = window.Hat.getBlock(type);
               let block = new blockClass(this);
               block.el.id = 'block' + new Date().getTime();
               if (position === false) {
@@ -5215,7 +5215,7 @@
       }
 
       focus() {
-          if (this.view == undefined) {e;
+          if (this.view == undefined) {
               this.view = 'content';
               let starterP = new DomEl('p');
               this.editEl.append(starterP);
@@ -5332,18 +5332,18 @@
       }
   }
 
-  window.HatRack = function(init, options) {
-      let EditorRegistry = {
-          add: function(hatInstance) {
-              this.editors[hatInstance.getContainer()] = hatInstance;
-          },
-          editors: new Map()
-      };
+  window.Hat = function(init, options) {
       let BlockRegistry = {
           names: ['paragraph'],
           objects: {
               paragraph: ParagraphBlock
           }
+      };
+      let EditorRegistry = {
+          add: function(hatInstance) {
+              this.editors[hatInstance.getContainer()] = hatInstance;
+          },
+          editors: new Map()
       };
       let Options = {
           'default': 'paragraph',
@@ -5352,7 +5352,7 @@
       };
       let Interface = {   
           createEditor: function(el) {
-              EditorRegistry.add(new Hat(el));
+              EditorRegistry.add(new Editor(el));
           },
           getBlock: function(blockName) {
               if (Interface.hasBlock(blockName)) {
@@ -5361,6 +5361,9 @@
           },
           getBlocks: function() {
               return BlockRegistry;
+          },
+          getDefault: function() {
+              return Options.default;
           },
           getEditor: function(el) {
               if (this.hasEditor(el)) {
@@ -5375,7 +5378,7 @@
           hasEditor: function(el) {
               return (EditorRegistry.editors[el]);
           },
-          registerBlock: function(name, slug, blockObj) {
+          registerBlock: function(slug, blockObj) {
               BlockRegistry.names.push(slug);
               BlockRegistry.objects[slug] = blockObj;
           },

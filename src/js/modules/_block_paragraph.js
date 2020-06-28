@@ -20,7 +20,7 @@ class ParagraphBlock extends Block {
     }
 
     focus() {
-        if (this.view == undefined) {e
+        if (this.view == undefined) {
             this.view = 'content';
             let starterP = new DomEl('p');
             this.editEl.append(starterP);

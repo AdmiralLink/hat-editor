@@ -1,19 +1,19 @@
-import Hat from './modules/_hat.js';
+import Editor from './modules/_editor.js';
 import ParagraphBlock from './modules/_block_paragraph.js';
 import './../sass/hat.sass';
 
-window.HatRack = function(init, options) {
-    let EditorRegistry = {
-        add: function(hatInstance) {
-            this.editors[hatInstance.getContainer()] = hatInstance;
-        },
-        editors: new Map()
-    };
+window.Hat = function(init, options) {
     let BlockRegistry = {
         names: ['paragraph'],
         objects: {
             paragraph: ParagraphBlock
         }
+    };
+    let EditorRegistry = {
+        add: function(hatInstance) {
+            this.editors[hatInstance.getContainer()] = hatInstance;
+        },
+        editors: new Map()
     };
     let Options = {
         'default': 'paragraph',
@@ -22,7 +22,7 @@ window.HatRack = function(init, options) {
     };
     let Interface = {   
         createEditor: function(el) {
-            EditorRegistry.add(new Hat(el));
+            EditorRegistry.add(new Editor(el));
         },
         getBlock: function(blockName) {
             if (Interface.hasBlock(blockName)) {
@@ -31,6 +31,9 @@ window.HatRack = function(init, options) {
         },
         getBlocks: function() {
             return BlockRegistry;
+        },
+        getDefault: function() {
+            return Options.default;
         },
         getEditor: function(el) {
             if (this.hasEditor(el)) {
@@ -45,7 +48,7 @@ window.HatRack = function(init, options) {
         hasEditor: function(el) {
             return (EditorRegistry.editors[el]);
         },
-        registerBlock: function(name, slug, blockObj) {
+        registerBlock: function(slug, blockObj) {
             BlockRegistry.names.push(slug);
             BlockRegistry.objects[slug] = blockObj;
         },
