@@ -2,7 +2,7 @@ export default Editor;
 import Sortable from '../lib/_Sortable';
 import DomEl from '../lib/_DomEl';
 
-let Editor = function(containerEl) {
+let Editor = function(containerEl, data) {
     let Blocks = [];
     let BlockCount = 0;
     let Elements = {
@@ -26,12 +26,18 @@ let Editor = function(containerEl) {
             });
             Elements.container.append(a);
         },
-        initialize: function(containerEl) {
+        initialize: function(containerEl, data) {
             Elements.container = containerEl;
             Elements.blockHolder = document.createElement('div');
             Elements.container.append(Elements.blockHolder);
             Internal.insertAddBlockButton();
-            Interface.addBlock();
+            if (data) {
+                data.forEach(function(blockData) {
+                    Interface.loadBlock(blockData);
+                });
+            } else {
+                Interface.addBlock();
+            }
             Internal.manageSorting();
             document.execCommand('defaultParagraphSeparator', false, 'p');
         },
@@ -47,9 +53,9 @@ let Editor = function(containerEl) {
         } 
     }
     let Interface = {
-        addBlock: function(focus=true,position=false, type=window.Hat.getDefault()) {
+        addBlock: function(focus=true,position=false, type=window.Hat.getDefault(), data=false) {
             let blockClass = window.Hat.getBlock(type);
-            let block = new blockClass(this);
+            let block = new blockClass(this, data);
             block.el.id = 'block' + new Date().getTime();
             if (position === false) {
                 Elements.blockHolder.appendChild(block.el);
@@ -95,6 +101,9 @@ let Editor = function(containerEl) {
             };
             return content;
         },
+        loadBlock: function(data) {
+            let block = Interface.addBlock(false, false, data.type, data);
+        },
         removeBlock: function(block) {
             var blockId = block.el.id;
             if (BlockCount > 1){
@@ -110,6 +119,6 @@ let Editor = function(containerEl) {
             }
         },
     };
-    Internal.initialize(containerEl);
+    Internal.initialize(containerEl, data);
     return Interface;
 };

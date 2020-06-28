@@ -141,6 +141,18 @@ class ParagraphBlock extends Block {
         }
     }
 
+    loadContent() {
+        if (this.content) {
+            if (this.view == 'content' || this.view == undefined) {
+                this.editEl.innerHTML = this.content;
+                this.view = 'content';
+            } else {
+                this.htmlEl.innerText = this.content;
+            }
+            delete this.content;
+        }
+    }
+
     registerMechanics() {
         super.registerMechanics();
         this.mechanic.add(new StyleMechanic());

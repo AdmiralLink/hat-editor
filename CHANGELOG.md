@@ -1,3 +1,13 @@
+# 0.3.11
+## ADDED
+- Importing existing content
+- Block's LoadContent method
+- Mechanic's registerSettings method
+## MODIFIED
+- InputField now randomizes element IDs so we don't get duplicates
+- Editor, Hat now accept data parameter for above
+- Mechanics now don't register or set fields until init, so that we can load settings
+
 # 0.3.10
 ## ADDED
 - prefers-reduced-motion media query for transitions

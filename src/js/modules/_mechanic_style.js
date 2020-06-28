@@ -6,8 +6,6 @@ import InputField from '../lib/_InputField';
 class StylesMechanic extends Mechanic {
     constructor() {
         super({title: 'Block styles', icon: 'paint-brush', class: 'styleBtn'}, 'styleDiv');
-        this.setFields();
-        this.registerFields();
     }
 
     focus() {

@@ -16,9 +16,9 @@ window.Hat = function(init, options) {
         editors: new Map()
     };
     let Options = {
-        'default': 'paragraph',
-        'init': true,
-        'selector': '.hat-editor'
+        default: 'paragraph',
+        init: true,
+        selector: '.hat-editor'
     };
     let Interface = {   
         createEditor: function(el) {
@@ -56,7 +56,9 @@ window.Hat = function(init, options) {
             for (let [key, value] of Object.entries(options)) {
                 Options[key] = value;
             };
-            if (Options.init) {
+            if (Options.data) {
+                EditorRegistry.add(new Editor(document.querySelector(Options.selector), Options.data));
+            } else if (Options.init) {
                 for (var el of document.querySelectorAll(Options.selector)) {
                     Interface.createEditor(el)
                 }

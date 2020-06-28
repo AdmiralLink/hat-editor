@@ -22,12 +22,15 @@ class Mechanic {
     init(Controller) {
         let mechanic = this;
         this.controller = Controller;
+        this.registerSettings();
         Controller.parentBlock.settingsContainer.append(this.button);
         Controller.container.append(this.div);
         this.button.addEventListener('click', function(e) {
             e.preventDefault();
             Controller.toggleView(mechanic.div, this);
         });
+        this.setFields();
+        this.registerFields();
         return this;
     }
 
@@ -68,6 +71,17 @@ class Mechanic {
             });
         }
         this.registerCloseButton();
+    }
+
+    registerSettings() {
+        let mech = this;
+        for (let [key,value] of Object.entries(this.settings)) {
+            if (mech.controller.settings && mech.controller.settings[key]) {
+                mech.settings[key] = mech.controller.settings[key];
+            } else {
+                mech.controller.settings[key] = value;
+            }
+        }
     }
 
     saveSettings() {

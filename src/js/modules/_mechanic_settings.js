@@ -7,8 +7,6 @@ import Mechanic from './_mechanic';
 class SettingsMechanic extends Mechanic {
     constructor() {
         super({title: 'Block settings', icon: 'cogs', class: 'settingsBtn'}, 'settingsDiv');
-        this.setFields();
-        this.registerFields();
     }
 
     focus() {
@@ -16,7 +14,7 @@ class SettingsMechanic extends Mechanic {
     }
 
     setFields() {
-        this.idField = new InputField('id', 'Block ID', 'AwesomeBlock', this.settings.id);
+        this.idField = new InputField('id', 'Block ID', 'AwesomeBlock', 'text', this.settings.id);
         this.classField = new InputField('class', 'Block classes', 'Space-separated list of classes', 'text', this.settings.class);
         this.fields = [
             this.idField,

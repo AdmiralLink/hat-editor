@@ -7,10 +7,15 @@ class MechanicController {
     constructor(block) {
         this.current = false;
         this.parentBlock = block;
+        if (this.parentBlock.settings) {
+            this.settings = this.parentBlock.settings;
+            delete this.parentBlock.settings;
+        } else {
+            this.settings = {};
+        }
         this.container = new DomEl('div.mechanicsContainer');
         this.parentBlock.el.append(this.container);
         this.mechanics = [];
-        this.settings = {};
         this.transition = false;
     }
 

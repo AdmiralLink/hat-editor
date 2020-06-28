@@ -6,7 +6,8 @@ class InputField {
     constructor(id, labelName, placeholder, type, value) {
         type = type || 'text';
         value = value || '';
-        let inputString = 'input#' + id + '[name="' + id + '"][type="'+ type + '"]';
+        let nodeId = id + new Date().getMilliseconds();
+        let inputString = 'input#' + nodeId + '[name="' + id + '"][type="'+ type + '"]';
         if (placeholder) {
             inputString += '[placeholder="' + placeholder + '"]';
         }
@@ -14,7 +15,7 @@ class InputField {
         if (value) {
             input.value = value;
         }
-        let label = new DomEl('label[for="' + id + '"]');
+        let label = new DomEl('label[for="' + nodeId + '"]');
         label.innerText = labelName;
         label.append(input);
         return label; 

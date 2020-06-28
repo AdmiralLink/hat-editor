@@ -7,7 +7,15 @@ import MiniModal from './../lib/_MiniModal';
 import SettingsMechanic from './_mechanic_settings';
 
 class Block {
-    constructor(hat) {
+    constructor(hat, data) {
+        if (data) {
+            if (data.content) {
+                this.content = data.content;
+            }
+            if (data.settings) {
+                this.settings = data.settings;
+            }
+        }
         this.setup();
         this.editor = hat;
         this.createElement();
@@ -15,6 +23,7 @@ class Block {
         this.registerMechanics();
         this.addGlobalEvents();
         this.addEvents();
+        this.loadContent();
     }
 
     addBlockControls() {
@@ -156,6 +165,8 @@ class Block {
     }
 
     keyboardShortcuts(e) {}
+
+    loadContent() {}
 
     moveBlock(direction) {
         this.getPosition();

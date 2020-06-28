@@ -3737,7 +3737,7 @@
       }
   }
 
-  let Editor = function(containerEl) {
+  let Editor = function(containerEl, data) {
       let Blocks = [];
       let BlockCount = 0;
       let Elements = {
@@ -3761,12 +3761,18 @@
               });
               Elements.container.append(a);
           },
-          initialize: function(containerEl) {
+          initialize: function(containerEl, data) {
               Elements.container = containerEl;
               Elements.blockHolder = document.createElement('div');
               Elements.container.append(Elements.blockHolder);
               Internal.insertAddBlockButton();
-              Interface.addBlock();
+              if (data) {
+                  data.forEach(function(blockData) {
+                      Interface.loadBlock(blockData);
+                  });
+              } else {
+                  Interface.addBlock();
+              }
               Internal.manageSorting();
               document.execCommand('defaultParagraphSeparator', false, 'p');
           },
@@ -3782,9 +3788,9 @@
           } 
       };
       let Interface = {
-          addBlock: function(focus=true,position=false, type=window.Hat.getDefault()) {
+          addBlock: function(focus=true,position=false, type=window.Hat.getDefault(), data=false) {
               let blockClass = window.Hat.getBlock(type);
-              let block = new blockClass(this);
+              let block = new blockClass(this, data);
               block.el.id = 'block' + new Date().getTime();
               if (position === false) {
                   Elements.blockHolder.appendChild(block.el);
@@ -3829,6 +3835,9 @@
                   content.push(contents);
               }            return content;
           },
+          loadBlock: function(data) {
+              let block = Interface.addBlock(false, false, data.type, data);
+          },
           removeBlock: function(block) {
               var blockId = block.el.id;
               if (BlockCount > 1){
@@ -3844,7 +3853,7 @@
               }
           },
       };
-      Internal.initialize(containerEl);
+      Internal.initialize(containerEl, data);
       return Interface;
   };
 
@@ -3866,10 +3875,15 @@
       constructor(block) {
           this.current = false;
           this.parentBlock = block;
+          if (this.parentBlock.settings) {
+              this.settings = this.parentBlock.settings;
+              delete this.parentBlock.settings;
+          } else {
+              this.settings = {};
+          }
           this.container = new DomEl('div.mechanicsContainer');
           this.parentBlock.el.append(this.container);
           this.mechanics = [];
-          this.settings = {};
           this.transition = false;
       }
 
@@ -4145,7 +4159,8 @@
       constructor(id, labelName, placeholder, type, value) {
           type = type || 'text';
           value = value || '';
-          let inputString = 'input#' + id + '[name="' + id + '"][type="'+ type + '"]';
+          let nodeId = id + new Date().getMilliseconds();
+          let inputString = 'input#' + nodeId + '[name="' + id + '"][type="'+ type + '"]';
           if (placeholder) {
               inputString += '[placeholder="' + placeholder + '"]';
           }
@@ -4153,7 +4168,7 @@
           if (value) {
               input.value = value;
           }
-          let label = new DomEl('label[for="' + id + '"]');
+          let label = new DomEl('label[for="' + nodeId + '"]');
           label.innerText = labelName;
           label.append(input);
           return label; 
@@ -4179,12 +4194,15 @@
       init(Controller) {
           let mechanic = this;
           this.controller = Controller;
+          this.registerSettings();
           Controller.parentBlock.settingsContainer.append(this.button);
           Controller.container.append(this.div);
           this.button.addEventListener('click', function(e) {
               e.preventDefault();
               Controller.toggleView(mechanic.div, this);
           });
+          this.setFields();
+          this.registerFields();
           return this;
       }
 
@@ -4227,6 +4245,17 @@
           this.registerCloseButton();
       }
 
+      registerSettings() {
+          let mech = this;
+          for (let [key,value] of Object.entries(this.settings)) {
+              if (mech.controller.settings && mech.controller.settings[key]) {
+                  mech.settings[key] = mech.controller.settings[key];
+              } else {
+                  mech.controller.settings[key] = value;
+              }
+          }
+      }
+
       saveSettings() {
           let mech = this;
           if (this.fields && this.fields.length > 0) {
@@ -4245,8 +4274,6 @@
   class SettingsMechanic extends Mechanic {
       constructor() {
           super({title: 'Block settings', icon: 'cogs', class: 'settingsBtn'}, 'settingsDiv');
-          this.setFields();
-          this.registerFields();
       }
 
       focus() {
@@ -4254,7 +4281,7 @@
       }
 
       setFields() {
-          this.idField = new InputField('id', 'Block ID', 'AwesomeBlock', this.settings.id);
+          this.idField = new InputField('id', 'Block ID', 'AwesomeBlock', 'text', this.settings.id);
           this.classField = new InputField('class', 'Block classes', 'Space-separated list of classes', 'text', this.settings.class);
           this.fields = [
               this.idField,
@@ -4271,7 +4298,15 @@
   }
 
   class Block {
-      constructor(hat) {
+      constructor(hat, data) {
+          if (data) {
+              if (data.content) {
+                  this.content = data.content;
+              }
+              if (data.settings) {
+                  this.settings = data.settings;
+              }
+          }
           this.setup();
           this.editor = hat;
           this.createElement();
@@ -4279,6 +4314,7 @@
           this.registerMechanics();
           this.addGlobalEvents();
           this.addEvents();
+          this.loadContent();
       }
 
       addBlockControls() {
@@ -4420,6 +4456,8 @@
       }
 
       keyboardShortcuts(e) {}
+
+      loadContent() {}
 
       moveBlock(direction) {
           this.getPosition();
@@ -5205,8 +5243,6 @@
   class StylesMechanic extends Mechanic {
       constructor() {
           super({title: 'Block styles', icon: 'paint-brush', class: 'styleBtn'}, 'styleDiv');
-          this.setFields();
-          this.registerFields();
       }
 
       focus() {
@@ -5354,6 +5390,18 @@
           }
       }
 
+      loadContent() {
+          if (this.content) {
+              if (this.view == 'content' || this.view == undefined) {
+                  this.editEl.innerHTML = this.content;
+                  this.view = 'content';
+              } else {
+                  this.htmlEl.innerText = this.content;
+              }
+              delete this.content;
+          }
+      }
+
       registerMechanics() {
           super.registerMechanics();
           this.mechanic.add(new StylesMechanic());
@@ -5374,9 +5422,9 @@
           editors: new Map()
       };
       let Options = {
-          'default': 'paragraph',
-          'init': true,
-          'selector': '.hat-editor'
+          default: 'paragraph',
+          init: true,
+          selector: '.hat-editor'
       };
       let Interface = {   
           createEditor: function(el) {
@@ -5413,7 +5461,9 @@
           start: function(options) {
               for (let [key, value] of Object.entries(options)) {
                   Options[key] = value;
-              }            if (Options.init) {
+              }            if (Options.data) {
+                  EditorRegistry.add(new Editor(document.querySelector(Options.selector), Options.data));
+              } else if (Options.init) {
                   for (var el of document.querySelectorAll(Options.selector)) {
                       Interface.createEditor(el);
                   }
