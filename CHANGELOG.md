@@ -1,3 +1,7 @@
+# 0.3.9
+## MODIFIED
+- SelectionWrapper now much smarter about what is selected after modifying contents
+
 # 0.3.8
 ## MODIFIED
 - HatRack is now Hat, what was Hat is now Editor, for comprehension's sake

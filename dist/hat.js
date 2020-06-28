@@ -4460,8 +4460,7 @@
 
   class SelectionWrapper {
       constructor(tag, view, opts) {
-          this.sel = window.getSelection();
-          let range = this.sel.getRangeAt(0);
+          this.getSelection();
           if (this.sel.rangeCount) {
               if (view == 'content') {
                   if (typeof(tag) == 'object') {
@@ -4511,20 +4510,26 @@
                               break;
                       } 
                       document.execCommand(command, false, commandTag);
+                      let parent = this.sel.anchorNode.parentElement;
+                      this.getSelection();
                       if (tag == 'a') {
                           if (opts.target) {
-                              this.sel.anchorNode.parentElement.setAttribute('target', opts.target);
+                              parent.setAttribute('target', opts.target);
                           }
-                          if (opts.text) {
-                              this.sel.anchorNode.parentElement.innerText = opts.text;
+                          if (opts.text !== parent.innerText) {
+                              let a = (parent.tagName.toLowerCase() == 'a') ? parent : this.sel.anchorNode;
+                              let range = this.range;
+                              parent.innerText = opts.text;
+                              this.range.selectNode(a);
                           }
                       }
                       if (badTag) {
-                          let badClose = '</' + badTag + '>';
-                          let goodClose = '</' + tag + '>';
-                          let badOpen = badClose.replace('/','');
-                          let goodOpen = goodClose.replace('/','');
-                          this.sel.anchorNode.parentElement.outerHTML = this.sel.anchorNode.parentElement.outerHTML.replace(badOpen, goodOpen).replace(badClose, goodClose);
+                          let badEl = this.sel.focusNode.parentElement;
+                          let newEl = new DomEl(tag);
+                          newEl.innerHTML = badEl.innerHTML;
+                          badEl.parentElement.insertBefore(newEl, badEl);
+                          badEl.remove();
+                          this.range.selectNode(newEl);
                       }
                   }
               } else {
@@ -4541,11 +4546,16 @@
                       }
                       optString = optString.substr(0, optString.length -1);
                   }
+                  let replacement = '';
+                  let startPos = this.range.startOffset;
                   if (typeof(tag) == 'object') {
-                      document.execCommand('insertText', false, '<' + tag[0] + '><' + tag[1] + '>' + text + '</' + tag[1] + '></' + tag[0] + '>');
+                      replacement = '<' + tag[0] + '><' + tag[1] + '>' + text + '</' + tag[1] + '></' + tag[0] + '>';
                   } else {
-                      document.execCommand('insertText', false, '<' + tag + optString + '>' + text + '</' + tag + '>');
+                      replacement = '<' + tag + optString + '>' + text + '</' + tag + '>';
                   }
+                  document.execCommand('insertText', false, replacement);
+                  this.getSelection();
+                  this.range.setStart(this.range.startContainer, startPos);
               }
           }
       }
@@ -4556,8 +4566,12 @@
               let node = nearestP.childNodes[0];
               nearestP.parentNode.insertBefore(node, nearestP);
               nearestP.remove();
-              new CursorFocus(node.childNodes[0]);
           }
+      }
+
+      getSelection() {
+          this.sel = window.getSelection();
+          this.range = this.sel.getRangeAt(0);
       }
   }
 
