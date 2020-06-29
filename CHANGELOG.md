@@ -1,3 +1,10 @@
+# 0.4.0
+## ADDED
+- Block Chooser
+- Code Block
+## MODIFIED
+- Block Registry now includes name, description and icon. Everything that flows from that has been modified to match
+
 # 0.3.11
 ## ADDED
 - Importing existing content

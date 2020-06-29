@@ -62,8 +62,43 @@ fieldset {
   font-size: 18px;
   line-height: 140%;
 }
-.hat-editor a.block {
+.hat-editor div.blockChoices {
+  position: fixed;
+  transform: translateX(-50%) scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.4s;
+  z-index: 250;
+  width: 190px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+.hat-editor div.blockChoices.show {
+  transition: transform 0.4s;
+  transform: translateX(-50%) scaleY(1);
+}
+.hat-editor div.blockChoices button {
+  cursor: pointer;
   width: 100%;
+  display: block;
+  padding: 10px;
+  border-radius: 2px;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  color: #999;
+  display: block;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.4s;
+}
+.hat-editor div.blockChoices button:hover {
+  transition: all 0.4s;
+  color: black;
+  border-color: black;
+}
+.hat-editor div.blockChoices button svg {
+  margin-left: 5px;
+}
+.hat-editor a.block {
+  width: 200px;
   text-align: center;
   color: #757575;
   border: 1px solid #757575;
@@ -73,6 +108,7 @@ fieldset {
   text-decoration: none;
   text-transform: uppercase;
   margin: 15px 0 5px;
+  margin-left: calc(100% - 200px);
 }
 .hat-editor a.block span {
   background: #aaa;
@@ -282,6 +318,16 @@ fieldset {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+.hat-editor .block.code .codespace {
+  background: #eee;
+  margin: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  min-height: 80px;
+  padding: 5px;
+  width: calc(100% - 10px);
+  font-family: monospace;
+  resize: vertical;
 }
 .hat-editor .block.paragraph {
   position: relative;

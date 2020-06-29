@@ -1,12 +1,24 @@
 import Editor from './modules/_editor.js';
+import CodeBlock from './modules/_block_code.js';
 import ParagraphBlock from './modules/_block_paragraph.js';
 import './../sass/hat.sass';
 
 window.Hat = function(init, options) {
     let BlockRegistry = {
-        names: ['paragraph'],
+        names: ['code', 'paragraph'],
         objects: {
-            paragraph: ParagraphBlock
+            code: {
+                class: CodeBlock,
+                description: 'For code/content that requires strict formatting',
+                icon: 'code',
+                name: 'Code',
+            },
+            paragraph: {
+                class: ParagraphBlock,
+                description: 'For regular text/content',
+                icon: 'edit',
+                name: 'Text'
+            }
         }
     };
     let EditorRegistry = {
@@ -27,10 +39,19 @@ window.Hat = function(init, options) {
         getBlock: function(blockName) {
             if (Interface.hasBlock(blockName)) {
                 return BlockRegistry.objects[blockName];
+            } else {
+                return false;
             }
         },
         getBlocks: function() {
-            return BlockRegistry;
+            return BlockRegistry.objects;
+        },
+        getBlockName: function(slug) {
+            if (BlockRegistry[slug]) {
+                return BlockRegistry[slug].name;
+            } else {
+                return false;
+            }
         },
         getDefault: function() {
             return Options.default;

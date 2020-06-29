@@ -3737,8 +3737,50 @@
       }
   }
 
+  class DomButton { 
+      constructor(title, icon, btnClass, text) {
+          let btn = (btnClass) ? 'button.' + btnClass : 'button';
+          let buttonEl = new DomEl(btn + '[title="' + title + '"]');
+          if (text) {
+              buttonEl.innerText = text;
+          }
+          if (icon) {
+              buttonEl.append(new DomEl('i.fas.fa-' + icon));
+          }
+          return buttonEl
+      }
+  }
+
   let Editor = function(containerEl, data) {
       let Blocks = [];
+      let BlockChooser = {
+          choiceDiv: new DomEl('div.blockChoices'),
+          create: function() {
+              let blockChoices = window.Hat.getBlocks();
+              for (let [slug, block] of Object.entries(blockChoices)) {
+                  let button = new DomButton(block.description, block.icon, 'choiceBtn', block.name); 
+                  button.dataset.slug = slug;
+                  BlockChooser.choiceDiv.append(button);
+                  let control = Interface;
+                  button.addEventListener('click', function(e) {
+                      BlockChooser.toggle();
+                      let button = e.target.closest('button');
+                      control.addBlock(true, false, button.dataset.slug);
+                  });
+              }            Elements.container.append(BlockChooser.choiceDiv);
+          },
+          toggle: function(originButton) {
+              let ChoiceDiv = BlockChooser.choiceDiv;
+              if (ChoiceDiv.classList.contains('show')) {
+                  ChoiceDiv.classList.remove('show');
+              } else {
+                  ChoiceDiv.style.left = originButton.offsetLeft + (originButton.offsetWidth/2) + 'px';
+                  ChoiceDiv.style.top = originButton.offsetTop + originButton.offsetHeight + 'px';
+                  ChoiceDiv.classList.add('show');
+                  ChoiceDiv.children[0].focus();
+              }
+          }
+      };
       let BlockCount = 0;
       let Elements = {
           blockHolder: false,
@@ -3752,12 +3794,11 @@
       let Internal = {
           blockCount: 0,
           insertAddBlockButton: function() {
-              var a = new DomEl('a.block[title="Add a new block (and select it)][href="javascript:void(0)"]');
+              var a = new DomEl('a.block[title=Create a new block by clicking here. You will be taken to the block type selector][href="javascript:void(0)"]');
               var icon = new DomEl('i.fas.fa-plus-square');
               a.innerHTML = icon.outerHTML + ' Add block';
               a.addEventListener('click', function() {
-                  //TODO: Show block list
-                  Interface.addBlock();
+                  BlockChooser.toggle(this);
               });
               Elements.container.append(a);
           },
@@ -3774,6 +3815,7 @@
                   Interface.addBlock();
               }
               Internal.manageSorting();
+              BlockChooser.create();
               document.execCommand('defaultParagraphSeparator', false, 'p');
           },
           manageSorting: function() {
@@ -3790,7 +3832,7 @@
       let Interface = {
           addBlock: function(focus=true,position=false, type=window.Hat.getDefault(), data=false) {
               let blockClass = window.Hat.getBlock(type);
-              let block = new blockClass(this, data);
+              let block = new blockClass.class(this, data);
               block.el.id = 'block' + new Date().getTime();
               if (position === false) {
                   Elements.blockHolder.appendChild(block.el);
@@ -3856,20 +3898,6 @@
       Internal.initialize(containerEl, data);
       return Interface;
   };
-
-  class DomButton { 
-      constructor(title, icon, btnClass, text) {
-          let btn = (btnClass) ? 'button.' + btnClass : 'button';
-          let buttonEl = new DomEl(btn + '[title="' + title + '"]');
-          if (text) {
-              buttonEl.innerText = text;
-          }
-          if (icon) {
-              buttonEl.append(new DomEl('i.fas.fa-' + icon));
-          }
-          return buttonEl
-      }
-  }
 
   class MechanicController {
       constructor(block) {
@@ -4495,6 +4523,49 @@
           this.el.append(this.middleContainer);
           this.el.append(this.settingsContainer);
           this.addBlockControls();
+      }
+  }
+
+  class CodeBlock extends Block {
+      createElement() {
+          this.el.classList.add('code');
+          this.contentEl = new DomEl('textarea.codespace');
+          this.contentContainer.appendChild(this.contentEl);
+      }
+
+      getContents() {
+          let content = {
+              settings: this.mechanic.getValues(),
+              type: 'code',
+              content: this.contentEl.value
+          };
+          return content;
+      }
+
+      keyboardShortcuts(e) {
+          if (e.ctrlKey || e.metaKey) {
+              switch (e.keyCode) {
+                  // B
+                  case 66:
+                  // I
+                  case 73:
+                  // U
+                  case 85: 
+                      e.preventDefault();
+                  break;
+                  case 32:
+                      e.preventDefault();
+                      document.execCommand('insertHTML', false, '\t');
+                  break;
+              }
+          }
+      }
+
+      loadContent() {
+          if (this.content) {
+              this.contentEl.value = this.content;
+              delete this.content;
+          }
       }
   }
 
@@ -5410,9 +5481,20 @@
 
   window.Hat = function(init, options) {
       let BlockRegistry = {
-          names: ['paragraph'],
+          names: ['code', 'paragraph'],
           objects: {
-              paragraph: ParagraphBlock
+              code: {
+                  class: CodeBlock,
+                  description: 'For code/content that requires strict formatting',
+                  icon: 'code',
+                  name: 'Code',
+              },
+              paragraph: {
+                  class: ParagraphBlock,
+                  description: 'For regular text/content',
+                  icon: 'edit',
+                  name: 'Text'
+              }
           }
       };
       let EditorRegistry = {
@@ -5433,10 +5515,19 @@
           getBlock: function(blockName) {
               if (Interface.hasBlock(blockName)) {
                   return BlockRegistry.objects[blockName];
+              } else {
+                  return false;
               }
           },
           getBlocks: function() {
-              return BlockRegistry;
+              return BlockRegistry.objects;
+          },
+          getBlockName: function(slug) {
+              if (BlockRegistry[slug]) {
+                  return BlockRegistry[slug].name;
+              } else {
+                  return false;
+              }
           },
           getDefault: function() {
               return Options.default;
