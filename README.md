@@ -15,6 +15,8 @@ A rich-text editor for the rest of us
 ## Why on earth would you write another text editor?
 Hat is designed to be a simple, block-based rich-text editor with a focus on accessibility. There are any number of text editors out there, but all of them fell short of at least one item on the "Features" list up there, which happens to list exactly the things I want in a text editor. (The closest, TinyMCE and CKEditor, clock in at ~380 kb & ~640 kb, respectively.) And in most cases, extending or modifying an existing editor to cover a shortcoming would have quickly brought it afoul of No. 4. So in the end, it was simpler to write exactly what I wanted.
 
+Hat is a component of a CMS I'm working on. As such, it's not quite full-featured (autosave to browser, for instance), but the hooks are there.
+
 More broadly, I'm tired of having to run software that is written to cover every possible edge-case and feature request for the 20% I actually need. It wastes time, energy and mental overhead on my part and the user's. Plus, I have to keep track of upgrades and breaking changes to accomodate new features I do not want nor need. Succinctly: I want stability.
 
 Hat is designed to be stable - the core will likely only be updated to fix problems with new browser/spec updates, not to add a new whiz-bangy feature.
@@ -22,7 +24,7 @@ Hat is designed to be stable - the core will likely only be updated to fix probl
 *Hat does use Sortable.js, but that's the for the block-arranging part, not the text editor part 
 
 ## Who is this for?  
-Me. My specific needs. If it's useful to anyone else, I'm thrilled to let you use the code and/or modify it if you want. However, be aware that the number of people who use it is not really a concern of mine.
+As stated, it's written for a CMS. If it's useful to anyone else, I'm thrilled to let you use the code and/or modify it if you want. However, be aware that the number of people who use it is not really a concern of mine.
 
 Generally, if you want to create content **for the web**, it might be useful. If you want to use the same content for your apps, you're either going to have convert the HTML or use a WebView. 
 

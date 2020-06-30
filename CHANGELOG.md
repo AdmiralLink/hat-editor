@@ -1,3 +1,7 @@
+# 0.4.2
+## MODIFIED
+- Readme updates
+
 # 0.4.1
 ## ADDED
 - Image block
