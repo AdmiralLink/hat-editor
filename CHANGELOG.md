@@ -1,3 +1,10 @@
+# 0.4.1
+## ADDED
+- Image block
+## MODIFIED
+- Refactored imageModal so it now uses ImageUploader
+- AddBlock button ChoiceDiv now relies on more sensible layout (in same div instead of JS-positioned), will scroll into view if necessary
+
 # 0.4.0
 ## ADDED
 - Block Chooser

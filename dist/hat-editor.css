@@ -62,20 +62,52 @@ fieldset {
   font-size: 18px;
   line-height: 140%;
 }
-.hat-editor div.blockChoices {
-  position: fixed;
-  transform: translateX(-50%) scaleY(0);
+.hat-editor #newBlockContainer {
+  width: 200px;
+  margin-left: calc(100% - 200px);
+}
+.hat-editor #newBlockContainer #addBlock {
+  display: block;
+  background: white;
+  width: 100%;
+  cursor: pointer;
+  text-align: center;
+  color: #757575;
+  border: 1px solid #4b3434;
+  border-radius: 10px;
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  text-transform: uppercase;
+  margin: 15px 0 5px;
+  position: relative;
+  z-index: 251;
+}
+.hat-editor #newBlockContainer #addBlock span {
+  background: #aaa;
+  color: white;
+  display: inline-block;
+  height: 25px;
+  font-size: 20px;
+  width: 25px;
+  border-radius: 50%;
+}
+.hat-editor #newBlockContainer div.blockChoices {
+  position: relative;
+  top: -5px;
+  transform: scaleY(0);
   transform-origin: top center;
   transition: transform 0.4s;
   z-index: 250;
   width: 190px;
+  margin-left: 5px;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
 }
-.hat-editor div.blockChoices.show {
+.hat-editor #newBlockContainer div.blockChoices.show {
   transition: transform 0.4s;
-  transform: translateX(-50%) scaleY(1);
+  transform: scaleY(1);
 }
-.hat-editor div.blockChoices button {
+.hat-editor #newBlockContainer div.blockChoices button {
   cursor: pointer;
   width: 100%;
   display: block;
@@ -85,39 +117,22 @@ fieldset {
   border: 1px solid rgba(0, 0, 0, 0.3);
   color: #999;
   display: block;
-  font-size: 14px;
   text-align: center;
   transition: all 0.4s;
+  position: relative;
 }
-.hat-editor div.blockChoices button:hover {
+.hat-editor #newBlockContainer div.blockChoices button span {
+  font-size: 14px;
+}
+.hat-editor #newBlockContainer div.blockChoices button:hover {
   transition: all 0.4s;
   color: black;
   border-color: black;
 }
-.hat-editor div.blockChoices button svg {
-  margin-left: 5px;
-}
-.hat-editor a.block {
-  width: 200px;
-  text-align: center;
-  color: #757575;
-  border: 1px solid #757575;
-  border-radius: 10px;
-  display: block;
-  padding: 10px;
-  text-decoration: none;
-  text-transform: uppercase;
-  margin: 15px 0 5px;
-  margin-left: calc(100% - 200px);
-}
-.hat-editor a.block span {
-  background: #aaa;
-  color: white;
-  display: inline-block;
-  height: 25px;
-  font-size: 20px;
-  width: 25px;
-  border-radius: 50%;
+.hat-editor #newBlockContainer div.blockChoices button svg {
+  position: absolute;
+  left: 10px;
+  top: 15px;
 }
 .hat-editor .block {
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
@@ -329,6 +344,121 @@ fieldset {
   font-family: monospace;
   resize: vertical;
 }
+.hat-editor .block.image label.imageUploader {
+  display: block;
+  background: #eee;
+  padding: 15px 10px;
+  text-align: center;
+  text-decoration: none;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.4s, box-shadow 0.4s;
+  border: 4px dashed #ccc;
+  border-radius: 10px;
+}
+.hat-editor .block.image label.imageUploader.hovered {
+  transform: scale(1.05);
+  transition: transform 0.4s, box-shadow 0.4s;
+  box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35);
+}
+.hat-editor .block.image label.imageUploader.previewing svg, .hat-editor .block.image label.imageUploader.previewing span {
+  display: none;
+}
+.hat-editor .block.image label.imageUploader.previewing img.preview {
+  display: block;
+}
+.hat-editor .block.image label.imageUploader svg {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+.hat-editor .block.image label.imageUploader .preview {
+  display: none;
+  width: auto;
+  max-width: 100%;
+  max-height: 300px;
+  height: auto;
+  margin: 10px auto;
+}
+.hat-editor .block.image label.imageUploader input[type=file] {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+.hat-editor .block.image label {
+  font-weight: bold;
+  font-size: 14px;
+  display: block;
+  margin: 10px auto;
+  width: 80%;
+}
+.hat-editor .block.image label input[type=text] {
+  display: block;
+  font-size: 16px;
+  padding: 3px;
+  margin: 2px 0;
+  width: 100%;
+}
+.hat-editor .block.image label.checkbox {
+  cursor: pointer;
+}
+.hat-editor .block.image label.checkbox svg {
+  display: none;
+  position: relative;
+  top: 3px;
+  margin-right: 4px;
+}
+.hat-editor .block.image label.checkbox input {
+  display: none;
+}
+.hat-editor .block.image label.checkbox input ~ svg {
+  font-size: 20px;
+}
+.hat-editor .block.image label.checkbox input ~ svg:first-of-type {
+  display: inline-block;
+  color: #666;
+}
+.hat-editor .block.image label.checkbox input:checked ~ svg:first-of-type {
+  display: none;
+}
+.hat-editor .block.image label.checkbox input:checked ~ svg:last-of-type {
+  display: inline-block;
+  color: #171;
+}
+.hat-editor .block.image img.chosen {
+  width: 80%;
+  max-width: 800px;
+  margin: 0 auto 20px;
+  display: block;
+}
+.hat-editor .block.image label.imageUploader {
+  width: 80%;
+  max-width: 500px;
+  margin: 15px auto;
+}
+.hat-editor .block.image div.uploaded label.imageUploader {
+  display: none;
+}
+.hat-editor .block.image .removeBtn {
+  background: #B11;
+  color: white;
+  margin: 10px auto;
+  display: block;
+  text-align: center;
+  border-color: white;
+  border-radius: 7px;
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.hat-editor .block.image .removeBtn svg {
+  margin-right: 10px;
+}
+.hat-editor .block.image .removeBtn.hide {
+  display: none;
+}
 .hat-editor .block.paragraph {
   position: relative;
 }
@@ -353,9 +483,12 @@ fieldset {
   color: blue;
 }
 .hat-editor .block.paragraph .toolbar button.textBtn {
+  padding: 0px 3px;
+}
+.hat-editor .block.paragraph .toolbar button.textBtn span {
   font-size: 10px;
   text-transform: uppercase;
-  padding: 8px 5px;
+  padding: 3px 5px;
   font-weight: bold;
   top: -3px;
   position: relative;
@@ -507,7 +640,7 @@ fieldset {
   font-size: 45px;
   margin-bottom: 15px;
 }
-.miniModal-container div#imageUpload label.imageUploader {
+.miniModal-container div.imageUploadContainer label.imageUploader {
   display: block;
   background: #eee;
   padding: 15px 10px;
@@ -520,22 +653,22 @@ fieldset {
   border: 4px dashed #ccc;
   border-radius: 10px;
 }
-.miniModal-container div#imageUpload label.imageUploader.hovered {
+.miniModal-container div.imageUploadContainer label.imageUploader.hovered {
   transform: scale(1.05);
   transition: transform 0.4s, box-shadow 0.4s;
   box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35);
 }
-.miniModal-container div#imageUpload label.imageUploader.previewing svg, .miniModal-container div#imageUpload label.imageUploader.previewing span {
+.miniModal-container div.imageUploadContainer label.imageUploader.previewing svg, .miniModal-container div.imageUploadContainer label.imageUploader.previewing span {
   display: none;
 }
-.miniModal-container div#imageUpload label.imageUploader.previewing img.preview {
+.miniModal-container div.imageUploadContainer label.imageUploader.previewing img.preview {
   display: block;
 }
-.miniModal-container div#imageUpload label.imageUploader svg {
+.miniModal-container div.imageUploadContainer label.imageUploader svg {
   font-size: 30px;
   margin-bottom: 10px;
 }
-.miniModal-container div#imageUpload label.imageUploader .preview {
+.miniModal-container div.imageUploadContainer label.imageUploader .preview {
   display: none;
   width: auto;
   max-width: 100%;
@@ -543,7 +676,7 @@ fieldset {
   height: auto;
   margin: 10px auto;
 }
-.miniModal-container div#imageUpload label.imageUploader input[type=file] {
+.miniModal-container div.imageUploadContainer label.imageUploader input[type=file] {
   width: 0.1px;
   height: 0.1px;
   opacity: 0;

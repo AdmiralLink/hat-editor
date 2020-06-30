@@ -1,17 +1,24 @@
 import Editor from './modules/_editor.js';
 import CodeBlock from './modules/_block_code.js';
+import ImageBlock from './modules/_block_image.js';
 import ParagraphBlock from './modules/_block_paragraph.js';
 import './../sass/hat.sass';
 
 window.Hat = function(init, options) {
     let BlockRegistry = {
-        names: ['code', 'paragraph'],
+        names: ['code', 'image', 'paragraph'],
         objects: {
             code: {
                 class: CodeBlock,
                 description: 'For code/content that requires strict formatting',
                 icon: 'code',
                 name: 'Code',
+            },
+            image: {
+                class: ImageBlock,
+                description: 'For a single image',
+                icon: 'image',
+                name: 'Image'
             },
             paragraph: {
                 class: ParagraphBlock,
@@ -68,6 +75,13 @@ window.Hat = function(init, options) {
         },
         hasEditor: function(el) {
             return (EditorRegistry.editors[el]);
+        },
+        getOption: function(opt) {
+            if (Options.hasOwnProperty(opt)) {
+                return Options[opt];
+            } else {
+                return false;
+            }
         },
         registerBlock: function(slug, blockObj) {
             BlockRegistry.names.push(slug);

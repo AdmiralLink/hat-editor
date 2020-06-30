@@ -2,6 +2,47 @@ $red: #B11
 $green: #171
 $font: "San Francisco","Helvetica Neue","Helvetica",sans-serif
 
+@mixin imageUploader
+    label.imageUploader
+        display: block
+        background: #eee
+        padding: 15px 10px
+        text-align: center
+        text-decoration: none
+        color: black
+        font-weight: bold
+        cursor: pointer
+        transition: transform 0.4s, box-shadow 0.4s
+        border: 4px dashed #ccc
+        border-radius: 10px
+        &.hovered 
+            transform: scale(1.05)
+            transition: transform 0.4s, box-shadow 0.4s
+            box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35)
+        &.previewing
+            svg, span
+                display: none
+            img.preview
+                display: block
+        svg
+            font-size: 30px
+            margin-bottom: 10px
+        .preview
+            display: none
+            width: auto
+            max-width: 100%
+            max-height: 300px
+            height: auto
+            margin: 10px auto
+        input
+            &[type="file"]
+                width: 0.1px
+                height: 0.1px
+                opacity: 0
+                overflow: hidden
+                position: absolute
+                z-index: -1
+
 @mixin form
     label
         font-weight: bold
@@ -89,56 +130,69 @@ fieldset
     background: white
     padding: 5px
     font-family: $font
-    div.blockChoices
-        position: fixed
-        transform: translateX(-50%) scaleY(0)
-        transform-origin: top center
-        transition: transform 0.4s
-        z-index: 250
-        width: 190px
-        box-shadow: 0 0 3px rgba(0,0,0,0.3)
-        &.show
-            transition: transform 0.4s
-            transform: translateX(-50%) scaleY(1)
-        button
-            cursor: pointer
+    #newBlockContainer
+        width: 200px
+        margin-left: calc(100% - 200px)
+        #addBlock
+            display: block
+            background: white
             width: 100%
+            cursor: pointer
+            text-align: center
+            color: #757575
+            border: 1px solid #4b3434
+            border-radius: 10px
             display: block
             padding: 10px
-            border-radius: 2px
-            background: white
-            border: 1px solid rgba(0,0,0,0.3)
-            color: #999
-            display: block
-            font-size: 14px
-            text-align: center
-            transition: all 0.4s
-            &:hover
+            text-decoration: none
+            text-transform: uppercase
+            margin: 15px 0 5px
+            position: relative
+            z-index: 251
+            span
+                background: #aaa
+                color: white
+                display: inline-block
+                height: 25px
+                font-size: 20px
+                width: 25px
+                border-radius: 50%
+        div.blockChoices
+            position: relative
+            top: -5px
+            transform: scaleY(0)
+            transform-origin: top center
+            transition: transform 0.4s
+            z-index: 250
+            width: 190px
+            margin-left: 5px
+            box-shadow: 0 0 3px rgba(0,0,0,0.3)
+            &.show
+                transition: transform 0.4s
+                transform: scaleY(1)
+            button
+                cursor: pointer
+                width: 100%
+                display: block
+                padding: 10px
+                border-radius: 2px
+                background: white
+                border: 1px solid rgba(0,0,0,0.3)
+                color: #999
+                display: block
+                text-align: center
                 transition: all 0.4s
-                color: black
-                border-color: rgba(0,0,0,1)
-            svg
-                margin-left: 5px
-    a.block
-        width: 200px
-        text-align: center
-        color: #757575
-        border: 1px solid #757575
-        border-radius: 10px
-        display: block
-        padding: 10px
-        text-decoration: none
-        text-transform: uppercase
-        margin: 15px 0 5px
-        margin-left: calc(100% - 200px)
-        span
-            background: #aaa
-            color: white
-            display: inline-block
-            height: 25px
-            font-size: 20px
-            width: 25px
-            border-radius: 50%
+                position: relative
+                span
+                    font-size: 14px
+                &:hover
+                    transition: all 0.4s
+                    color: black
+                    border-color: rgba(0,0,0,1)
+                svg
+                    position: absolute
+                    left: 10px
+                    top: 15px
     .block
         box-shadow: 0 0 4px rgba(0,0,0,0.35)
         margin: 10px 0
@@ -266,6 +320,35 @@ fieldset
                 width: calc(100% - 10px)
                 font-family: monospace
                 resize: vertical
+        &.image
+            @include imageUploader
+            @include form
+            img.chosen
+                width: 80%
+                max-width: 800px
+                margin: 0 auto 20px
+                display: block
+            label.imageUploader
+                width: 80%
+                max-width: 500px
+                margin: 15px auto
+            div.uploaded
+                label.imageUploader
+                    display: none
+            .removeBtn
+                background: $red
+                color: white
+                margin: 10px auto
+                display: block
+                text-align: center
+                border-color: white
+                border-radius: 7px
+                padding: 7px 12px
+                cursor: pointer
+                svg
+                    margin-right: 10px
+                &.hide
+                    display: none
         &.paragraph
             .toolbar
                 background: white
@@ -284,13 +367,15 @@ fieldset
                     &.active
                         color: blue
                     &.textBtn
-                        font-size: 10px
-                        text-transform: uppercase
-                        padding: 8px 5px
-                        font-weight: bold
-                        top: -3px
-                        position: relative
-                        margin-bottom: -4px
+                        padding: 0px 3px
+                        span
+                            font-size: 10px
+                            text-transform: uppercase
+                            padding: 3px 5px
+                            font-weight: bold
+                            top: -3px
+                            position: relative
+                            margin-bottom: -4px
                     &[disabled]
                         color: #ccc
                         cursor: not-allowed
@@ -402,46 +487,8 @@ fieldset
             color: $red
             font-size: 45px
             margin-bottom: 15px
-    div#imageUpload
-        label.imageUploader
-            display: block
-            background: #eee
-            padding: 15px 10px
-            text-align: center
-            text-decoration: none
-            color: black
-            font-weight: bold
-            cursor: pointer
-            transition: transform 0.4s, box-shadow 0.4s
-            border: 4px dashed #ccc
-            border-radius: 10px
-            &.hovered 
-                transform: scale(1.05)
-                transition: transform 0.4s, box-shadow 0.4s
-                box-shadow: 0 0 20px 0px rgba(0, 0, 0, 0.35)
-            &.previewing
-                svg, span
-                    display: none
-                img.preview
-                    display: block
-            svg
-                font-size: 30px
-                margin-bottom: 10px
-            .preview
-                display: none
-                width: auto
-                max-width: 100%
-                max-height: 300px
-                height: auto
-                margin: 10px auto
-            input
-                &[type="file"]
-                    width: 0.1px
-                    height: 0.1px
-                    opacity: 0
-                    overflow: hidden
-                    position: absolute
-                    z-index: -1
+    div.imageUploadContainer
+        @include imageUploader
     .closeBtn
         box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.2)
         background: $red

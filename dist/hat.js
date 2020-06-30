@@ -3741,11 +3741,13 @@
       constructor(title, icon, btnClass, text) {
           let btn = (btnClass) ? 'button.' + btnClass : 'button';
           let buttonEl = new DomEl(btn + '[title="' + title + '"]');
-          if (text) {
-              buttonEl.innerText = text;
-          }
           if (icon) {
               buttonEl.append(new DomEl('i.fas.fa-' + icon));
+          }
+          if (text) {
+              let span = new DomEl('span');
+              span.innerText = text;
+              buttonEl.append(span);
           }
           return buttonEl
       }
@@ -3756,6 +3758,7 @@
       let BlockChooser = {
           choiceDiv: new DomEl('div.blockChoices'),
           create: function() {
+              BlockChooser.insertAddBlockButton();
               let blockChoices = window.Hat.getBlocks();
               for (let [slug, block] of Object.entries(blockChoices)) {
                   let button = new DomButton(block.description, block.icon, 'choiceBtn', block.name); 
@@ -3767,16 +3770,26 @@
                       let button = e.target.closest('button');
                       control.addBlock(true, false, button.dataset.slug);
                   });
-              }            Elements.container.append(BlockChooser.choiceDiv);
+              }            Elements.newBlockContainer.append(BlockChooser.choiceDiv);
+          },
+          insertAddBlockButton: function() {
+              var button = new DomEl('button#addBlock[title=Create a new block by clicking here. You will be taken to the block type selector]');
+              var icon = new DomEl('i.fas.fa-plus-square');
+              button.innerHTML = icon.outerHTML + ' Add block';
+              button.addEventListener('click', function() {
+                  BlockChooser.toggle(this);
+              });
+              Elements.newBlockContainer.append(button);
           },
           toggle: function(originButton) {
               let ChoiceDiv = BlockChooser.choiceDiv;
               if (ChoiceDiv.classList.contains('show')) {
                   ChoiceDiv.classList.remove('show');
               } else {
-                  ChoiceDiv.style.left = originButton.offsetLeft + (originButton.offsetWidth/2) + 'px';
-                  ChoiceDiv.style.top = originButton.offsetTop + originButton.offsetHeight + 'px';
                   ChoiceDiv.classList.add('show');
+                  setTimeout(function() {
+                      ChoiceDiv.children[ChoiceDiv.children.length-1].scrollIntoView({behavior: 'smooth'});
+                  }, 400);
                   ChoiceDiv.children[0].focus();
               }
           }
@@ -3784,7 +3797,8 @@
       let BlockCount = 0;
       let Elements = {
           blockHolder: false,
-          container: false
+          container: false,
+          newBlockContainer: new DomEl('div#newBlockContainer')
       };
       let Events = {
           fire: function(eventName, element=Elements.blockHolder) {
@@ -3793,20 +3807,11 @@
       };
       let Internal = {
           blockCount: 0,
-          insertAddBlockButton: function() {
-              var a = new DomEl('a.block[title=Create a new block by clicking here. You will be taken to the block type selector][href="javascript:void(0)"]');
-              var icon = new DomEl('i.fas.fa-plus-square');
-              a.innerHTML = icon.outerHTML + ' Add block';
-              a.addEventListener('click', function() {
-                  BlockChooser.toggle(this);
-              });
-              Elements.container.append(a);
-          },
           initialize: function(containerEl, data) {
               Elements.container = containerEl;
               Elements.blockHolder = document.createElement('div');
               Elements.container.append(Elements.blockHolder);
-              Internal.insertAddBlockButton();
+              Elements.container.append(Elements.newBlockContainer);
               if (data) {
                   data.forEach(function(blockData) {
                       Interface.loadBlock(blockData);
@@ -4569,6 +4574,321 @@
       }
   }
 
+  class ErrorModal$1 extends MiniModal {
+      constructor(errorMessage) {
+          let errorDiv = new DomEl('div.error');
+          errorDiv.append(new DomEl('i.fas.fa-exclamation-circle'));
+          errorDiv.append(new DomEl('br'));
+          errorDiv.append(new DomEl('p').innerText = errorMessage);
+          super({
+              closeX: false,
+              confirmButtonClass: false,
+              contentType: 'node',
+              content: errorDiv,
+              header: 'Error',
+              special: 'super'
+          });
+      }
+  }
+
+  class Ajax {
+      constructor(url, data, progressBar) {
+          this.xhr = new XMLHttpRequest();
+          let fd = new FormData();
+          for (let [key,value] of Object.entries(data)) {
+              fd.append(key, value);
+          }
+          var xhr = new XMLHttpRequest();
+          if (progressBar) {
+              xhr.upload.addEventListener('progress', function(e) {
+                  progressBar.update( Math.round( (e.loaded * 100) /e.total) );
+              });
+          }
+          let eventEl = new DomEl('div');
+          xhr.responseType = 'json';
+          xhr.open('POST', url);
+          xhr.send(fd);
+          xhr.onerror = function() { new ErrorModal$1('An error occurred during upload.'); };
+          let ajax = this;
+          xhr.onreadystatechange = function() {
+              if (xhr.readyState === 4) {
+                  if (xhr.status === 200) {
+                      if (xhr.response.type == 'error') {
+                          new ErrorModal$1(xhr.response.message);
+                          ajax.throwError(eventEl, progressBar);
+                      } else {
+                          for (let [key, value] of Object.entries(xhr.response)) {
+                              eventEl.setAttribute(key, value);
+                          }
+                          if (progressBar) {
+                              progressBar.update(100);
+                          }
+                          eventEl.dispatchEvent(new Event('success'));
+                      }
+                  } else if (xhr.status == 410 || xhr.status === 404 || xhr.status == 403 || xhr.status === 401 ) {
+                      new ErrorModal$1(xhr.status + ', check your upload URL');
+                      ajax.throwError(eventEl, progressBar);
+                  } else if (xhr.status === 431 || xhr.status === 413) {
+                      new ErrorModal$1(xhr.status + ', check your server settings');
+                      ajax.throwError(eventEl, progressBar);
+                  } else {
+                      new ErrorModal$1('Upload returned a ' + xhr.status + ' error');
+                      ajax.throwError(eventEl, progressBar);
+                  }
+              }
+          };
+          return eventEl;
+      }
+
+      throwError(eventEl, progressBar) {
+          if (this.progressBar) {
+              progressBar.update('failure');
+          }
+          eventEl.dispatchEvent(new Event('failure'));
+      }
+  }
+
+  class ProgressBar {
+      constructor(target, removeOnCompletion, type) {
+          this.type = type || 'Upload';
+          this.removeOnCompletion = removeOnCompletion;
+          let notificationId = 'progress' + new Date().getMilliseconds();
+          this.notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#' + notificationId);
+          this.notification.innerText = 'Press spacebar to get current value';
+          this.track = new DomEl('div.progressBar[tab-index=1][role=progressbar][aria-describedby=' + notificationId + '][aria-valuenow=0]');
+          let theBar = this;
+          this.track.addEventListener('keydown', function(e) {
+              if (e.keyCode == 32) {
+                  theBar.notify();
+              }
+          });
+          this.bar = new DomEl('div.bar[tab-index=0]');
+          this.track.append(this.bar);
+          target.append(this.track);
+          target.append(this.notification);
+      }
+
+      notify(num) {
+          if (num == 'failure') {
+              this.track.setAttribute('tab-index',0);
+              this.notification.innerText = this.type + ' failed';
+          } else if (num == 100) {
+              this.track.setAttribute('tab-index',0);
+              this.notification.innerText = this.type + ' Complete';
+              if (this.removeOnCompletion) {
+                  let theBar = this;
+                  setTimeout(function() { 
+                      theBar.track.remove();
+                      theBar.notification.remove(); 
+                  }, 500);
+              }
+          } else {
+              this.notification.innerText = num + '%';
+          }
+      }
+
+      update(num) {
+          this.bar.style.width = num + '%';
+          if (num == 100) {
+              this.bar.classList.add('done');
+              this.notify(num);
+          }
+      }
+  }
+
+  class ImageUploader {
+      constructor() {
+          this.requireBoth = true;
+          this.uploading = false;
+          this.createElements();
+          this.addEvents();
+      }
+
+      acceptFile(file) {
+          if (file) {
+              if (!file.type.match(/image.*/)) {
+                  new ErrorModal$1('File is not a valid image');
+              } else {    
+                  this.preview.src = window.URL.createObjectURL(file);
+                  this.fileData = file;
+                  if (!this.label.classList.contains('previewing')) {
+                      this.label.classList.add('previewing');
+                  }
+              }
+          }
+      }
+
+      addEvents() {
+          let label = this.label;
+          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+              label.addEventListener(eventName, function(e){e.preventDefault(); e.stopPropagation();}, false );
+          });
+          ['dragenter','dragover'].forEach(function(eventName) {
+              label.addEventListener(eventName, function(e){ label.classList.add('hovered');});
+          });
+          ['dragleave','drop'].forEach(function(eventName) {
+              label.addEventListener(eventName, function(e) { label.classList.remove('hovered');});
+          });
+          label.addEventListener('keydown', function(e) {
+              if (e.keyCode == 13) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  this.click();
+              }
+          });
+      }   
+
+      confirm() {
+          if (!this.uploading) {
+              this.uploading = true;
+              if (Hat.getOption('imageUploadUrl')) {
+                  let url = Hat.getOption('imageUploadUrl');
+                  if (this.fileData) {
+                      if (this.requireBoth && this.altText.value) {
+                          new ErrorModal$1('You must have both an image and alt text to upload');
+                          this.uploading = false;
+                          return false;
+                      }
+                      let uploader = this;
+                      let data = {
+                          image: this.fileData,
+                          altText: this.altText.value
+                      };
+                      this.form.style.display = 'none';
+                      let bar = new ProgressBar(this.container);
+                      let upload = new Ajax(url, data, bar);
+                      window.upload = upload;
+                      upload.addEventListener('success', function(e) {
+                          bar.track.classList.add('success');
+                          uploader.createImageEl(e.target.getAttribute('imageUrl'),e.target.getAttribute('altText'));
+                          uploader.form.dispatchEvent(new Event('uploaded'));
+                          bar.track.remove();
+                          uploader.uploading = false;
+                      });
+                      upload.addEventListener('failure', function(e) {
+                          if (uploader.uploading) {  
+                              uploader.uploading = false;
+                              bar.track.classList.add('failure');
+                              bar.track.remove();
+                              uploader.form.style.display = 'block';
+                          }
+                      });
+                  } else {
+                      new ErrorModal$1('No image to upload');
+                      this.uploading = false;
+                  }
+              } else {
+                  new ErrorModal$1('Upload URL is not set');
+                  this.uploading = false;
+              }
+          }
+      }
+
+      createElements() {
+          this.fileData = false;
+          this.container = new DomEl('div');
+          this.form = new DomEl('div.imageUploadContainer');
+          this.input = new DomEl('input[type=file][tabindex=-1][name="uploader"]#uploader');
+          let span = new DomEl('span');
+          span.innerText = 'Click here to browse or drop the image you want to upload';
+          let icon = new DomEl('i.fas.fa-file-image');
+          this.label = new DomEl('label.imageUploader[for="uploader"][tabindex=0][title="Hit enter to browse for an image to upload"]');
+          this.preview = new DomEl('img.preview'); 
+          this.label.append(icon);
+          this.label.append(this.preview);
+          this.label.append(document.createElement('br'));
+          this.label.append(span);
+          this.label.append(this.input);
+          this.form.append(this.label);
+          let altLabel = new InputField('altText','Alternative text for accessibility','A description of the photo');
+          this.form.append(altLabel);
+          this.container.append(this.form);
+          this.altText = altLabel.children[0];
+      }
+
+      createImageEl(url, altText) {
+          this.imageEl = new DomEl('img[src=' + url + '][alt=' + altText + '].chosen');
+      }
+
+      setContent(content) {
+          if (content.image) {
+              this.input.value = content.image;
+              this.createImageEl(content.image, content.altText);
+              this.preview.src = content.image;
+              this.preview.classList.add('previewing');
+          }
+          if (content.altText) {
+              this.altText.value = content.altText;
+          }
+      }
+  }
+
+  class ImageBlock extends Block {
+      acceptFile(file) {
+          if (file) {
+              if (!file.type.match(/image.*/)) {
+                  new ErrorModal('File is not a valid image');
+              } else {    
+                  this.uploader.fileData = file;
+                  this.uploader.confirm();
+              }
+          }
+      }
+      
+      addEvents() {
+          let block = this;
+          this.uploader.input.addEventListener('change', function(e) {
+              block.acceptFile(this.files[0]);
+          });
+          this.uploader.label.addEventListener('drop', function(e) {
+              block.acceptFile(e.dataTransfer.files[0]);
+          });
+          this.uploader.form.addEventListener('uploaded', function() {
+              block.removeButton.classList.remove('hide');
+              block.contentContainer.append(block.uploader.imageEl);
+              block.uploader.form.style.display = 'block';
+              block.uploader.form.classList.add('uploaded');
+          });
+          this.removeButton.addEventListener('click', function(e) {
+              e.preventDefault();
+              block.uploader.imageEl.remove();
+              delete(block.uploader.imageEl);
+              block.uploader.form.classList.remove('uploaded');
+              this.classList.add('hide');
+          });
+      }
+
+      createElement() {
+          this.el.classList.add('image');
+          this.uploader = new ImageUploader();
+          this.removeButton = new DomButton('Select this to remove the current image', 'eye-slash', 'removeBtn', 'Remove image');
+          this.removeButton.classList.add('hide');
+          this.contentContainer.appendChild(this.uploader.form);
+          this.contentContainer.appendChild(this.removeButton);
+      }
+
+      focus() {
+          this.uploader.label.focus();
+      }
+
+      getContents() {
+          let content = {
+              altText: this.uploader.altText.value,
+              image: false
+          };
+          if (this.uploader.imageEl) {
+              content.image = this.uploader.imageEl.src;
+          }
+      }
+
+      loadContent() {
+          if (this.content) {
+              this.uploader.setContent(this.content);
+              delete this.content;
+          }
+      }
+  }
+
   class CursorFocus {
       constructor(el) {
           el.focus();
@@ -4724,246 +5044,46 @@
   	};
   }
 
-  class ErrorModal extends MiniModal {
-      constructor(errorMessage) {
-          let errorDiv = new DomEl('div.error');
-          errorDiv.append(new DomEl('i.fas.fa-exclamation-circle'));
-          errorDiv.append(new DomEl('br'));
-          errorDiv.append(new DomEl('p').innerText = errorMessage);
-          super({
-              closeX: false,
-              confirmButtonClass: false,
-              contentType: 'node',
-              content: errorDiv,
-              header: 'Error',
-              special: 'super'
-          });
-      }
-  }
-
-  class Ajax {
-      constructor(url, data, progressBar) {
-          this.xhr = new XMLHttpRequest();
-          let fd = new FormData();
-          for (let [key,value] of Object.entries(data)) {
-              fd.append(key, value);
-          }
-          var xhr = new XMLHttpRequest();
-          if (progressBar) {
-              xhr.upload.addEventListener('progress', function(e) {
-                  progressBar.update( Math.round( (e.loaded * 100) /e.total) );
-              });
-          }
-          let eventEl = new DomEl('div');
-          xhr.responseType = 'json';
-          xhr.open('POST', url);
-          xhr.send(fd);
-          xhr.onerror = function() { new ErrorModal('An error occurred during upload.'); };
-          let ajax = this;
-          xhr.onreadystatechange = function() {
-              if (xhr.readyState === 4) {
-                  if (xhr.status === 200) {
-                      if (xhr.response.type == 'error') {
-                          new ErrorModal(xhr.response.message);
-                          ajax.throwError(eventEl, progressBar);
-                      } else {
-                          for (let [key, value] of Object.entries(xhr.response)) {
-                              eventEl.setAttribute(key, value);
-                          }
-                          if (progressBar) {
-                              progressBar.update(100);
-                          }
-                          eventEl.dispatchEvent(new Event('success'));
-                      }
-                  } else if (xhr.status == 410 || xhr.status === 404 || xhr.status == 403 || xhr.status === 401 ) {
-                      new ErrorModal(xhr.status + ', check your upload URL');
-                      ajax.throwError(eventEl, progressBar);
-                  } else if (xhr.status === 431 || xhr.status === 413) {
-                      new ErrorModal(xhr.status + ', check your server settings');
-                      ajax.throwError(eventEl, progressBar);
-                  } else {
-                      new ErrorModal('Upload returned a ' + xhr.status + ' error');
-                      ajax.throwError(eventEl, progressBar);
-                  }
-              }
-          };
-          return eventEl;
-      }
-
-      throwError(eventEl, progressBar) {
-          if (this.progressBar) {
-              progressBar.update('failure');
-          }
-          eventEl.dispatchEvent(new Event('failure'));
-      }
-  }
-
-  class ProgressBar {
-      constructor(target, removeOnCompletion, type) {
-          this.type = type || 'Upload';
-          this.removeOnCompletion = removeOnCompletion;
-          let notificationId = 'progress' + new Date().getMilliseconds();
-          this.notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#' + notificationId);
-          this.notification.innerText = 'Press spacebar to get current value';
-          this.track = new DomEl('div.progressBar[tab-index=1][role=progressbar][aria-describedby=' + notificationId + '][aria-valuenow=0]');
-          let theBar = this;
-          this.track.addEventListener('keydown', function(e) {
-              if (e.keyCode == 32) {
-                  theBar.notify();
-              }
-          });
-          this.bar = new DomEl('div.bar[tab-index=0]');
-          this.track.append(this.bar);
-          target.append(this.track);
-          target.append(this.notification);
-      }
-
-      notify(num) {
-          if (num == 'failure') {
-              this.track.setAttribute('tab-index',0);
-              this.notification.innerText = this.type + ' failed';
-          } else if (num == 100) {
-              this.track.setAttribute('tab-index',0);
-              this.notification.innerText = this.type + ' Complete';
-              if (this.removeOnCompletion) {
-                  let theBar = this;
-                  setTimeout(function() { 
-                      theBar.track.remove();
-                      theBar.notification.remove(); 
-                  }, 500);
-              }
-          } else {
-              this.notification.innerText = num + '%';
-          }
-      }
-
-      update(num) {
-          this.bar.style.width = num + '%';
-          if (num == 100) {
-              this.bar.classList.add('done');
-              this.notify(num);
-          }
-      }
-  }
-
   class ImageUploadModal extends MiniModal {
       constructor() {
           super(false, true);
-          this.uploading = false;
-          this.createElements();
+          this.uploader = new ImageUploader;
           this.addEvents();
           this.constructModal(this.getModalOptions());
       }
 
-      acceptFile(file) {
-          if (file) {
-              if (!file.type.match(/image.*/)) {
-                  new ErrorModal('File is not a valid image');
-              } else {    
-                  this.preview.src = window.URL.createObjectURL(file);
-                  this.fileData = file;
-                  if (!this.label.classList.contains('previewing')) {
-                      this.label.classList.add('previewing');
-                  }
-              }
-          }
-      }
-
       addEvents() {
-          let uploadModal = this;
-          let label = this.label;
-          ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
-              label.addEventListener(eventName, function(e){e.preventDefault(); e.stopPropagation();}, false );
+          let modal = this;
+          let uploader = this.uploader;
+          this.uploader.form.addEventListener('uploaded', function() {
+              modal.modalContainer.dispatchEvent(new Event('uploaded'));
+              modal.close();
           });
-          ['dragenter','dragover'].forEach(function(eventName) {
-              label.addEventListener(eventName, function(e){ label.classList.add('hovered');});
-          });
-          ['dragleave','drop'].forEach(function(eventName) {
-              label.addEventListener(eventName, function(e) { label.classList.remove('hovered');});
-          });
-          this.label.addEventListener('keydown', function(e) {
+          this.uploader.form.addEventListener('keydown', function(e) {
               if (e.keyCode == 13) {
                   e.preventDefault();
-                  e.stopPropagation();
-                  this.click();
+                  uploader.confirm();
               }
           });
-          this.form.addEventListener('keydown', function(e) {
-              if (e.keyCode == 13) {
-                  uploadModal.confirm();
-              }
+          this.uploader.input.addEventListener('change', function(e) {
+              uploader.acceptFile(this.files[0]);
           });
-          this.input.addEventListener('change', function(e) {
-              uploadModal.acceptFile(this.files[0]);
-          });
-          label.addEventListener('drop', function(e) {
-              uploadModal.acceptFile(e.dataTransfer.files[0]);
+          this.uploader.label.addEventListener('drop', function(e) {
+              uploader.acceptFile(e.dataTransfer.files[0]);
           });
       }
 
       confirm() {
-          if (!this.uploading) {
-              this.uploading = true;
-              if (HatRack.options.imageUploadUrl) {
-                  let url = HatRack.options.imageUploadUrl;
-                  if (this.fileData && this.altText.value) {
-                      let data = {
-                          image: this.fileData,
-                          altText: this.altText.value
-                      };
-                      this.form.style.display = 'none';
-                      let bar = new ProgressBar(this.modalContent);
-                      let upload = new Ajax(url, data, bar);
-                      upload.addEventListener('success', function(e) {
-                          bar.track.classList.add('success');
-                          this.imageEl = new DomEl('img[src=' + e.target.getAttribute('imageUrl') + '][alt=' + e.target.getAttribute('altText') + ']');
-                          this.modalContainer.dispatchEvent(new Event('uploaded'));
-                          this.close();
-                      });
-                      upload.addEventListener('failure', function(e) {  
-                          bar.track.classList.add('failure');
-                          this.uploading = false;
-                          bar.track.remove();
-                          this.form.style.display = 'block';
-                      });
-                  } else {
-                      new ErrorModal('You must have both an image and alt text to upload');
-                      this.uploading = false;
-                  }
-              } else {
-                  new ErrorModal('Upload URL is not set');
-                  this.uploading = false;
-              }
-          }
-      }
-
-      createElements() {
-          this.fileData = false;
-          this.form = new DomEl('div#imageUpload');
-          this.input = new DomEl('input[type=file][name="uploader"]#uploader');
-          let span = new DomEl('span');
-          span.innerText = 'Click here to browse or drop the image you want to upload';
-          let icon = new DomEl('i.fas.fa-file-image');
-          this.label = new DomEl('label.imageUploader[for="uploader"][tabindex="1"][title="Hit enter to browse for an image to upload"]');
-          this.preview = new DomEl('img.preview'); 
-          this.label.append(icon);
-          this.label.append(this.preview);
-          this.label.append(document.createElement('br'));
-          this.label.append(span);
-          this.label.append(this.input);
-          this.form.append(this.label);
-          let altLabel = new InputField('altText','Alternative text for accessibility','A description of the photo');
-          this.form.append(altLabel);
-          this.altText = altLabel.children[0];
+          this.uploader.confirm();
       }
 
       getModalOptions() {
           return {
               contentType: 'node',
-              content: this.form,
+              content: this.uploader.container,
               confirm: true,
               enterConfirms: false,
-              focusTarget: this.label,
+              focusTarget: this.uploader.label,
           };
       }
   }
@@ -4994,7 +5114,7 @@
               this.confirmed = true;
               this.close();
           } else {
-              new ErrorModal('You must include a link');
+              new ErrorModal$1('You must include a link');
           }
       }
 
@@ -5159,9 +5279,9 @@
           image.modalContainer.addEventListener('uploaded', function(e) {
               toolbar.returnCursor(sel, range);
               if (toolbar.parentBlock.view == 'content') {
-                  document.execCommand('insertHTML', false, image.imageEl.outerHTML);
+                  document.execCommand('insertHTML', false, image.uploader.imageEl.outerHTML);
               } else {
-                  document.execCommand('insertText', false, image.imageEl.outerHTML);
+                  document.execCommand('insertText', false, image.uploader.imageEl.outerHTML);
               }
           });
           image.modalContainer.addEventListener('canceled', function(e) {
@@ -5481,13 +5601,19 @@
 
   window.Hat = function(init, options) {
       let BlockRegistry = {
-          names: ['code', 'paragraph'],
+          names: ['code', 'image', 'paragraph'],
           objects: {
               code: {
                   class: CodeBlock,
                   description: 'For code/content that requires strict formatting',
                   icon: 'code',
                   name: 'Code',
+              },
+              image: {
+                  class: ImageBlock,
+                  description: 'For a single image',
+                  icon: 'image',
+                  name: 'Image'
               },
               paragraph: {
                   class: ParagraphBlock,
@@ -5544,6 +5670,13 @@
           },
           hasEditor: function(el) {
               return (EditorRegistry.editors[el]);
+          },
+          getOption: function(opt) {
+              if (Options.hasOwnProperty(opt)) {
+                  return Options[opt];
+              } else {
+                  return false;
+              }
           },
           registerBlock: function(slug, blockObj) {
               BlockRegistry.names.push(slug);

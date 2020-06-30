@@ -8,6 +8,7 @@ let Editor = function(containerEl, data) {
     let BlockChooser = {
         choiceDiv: new DomEl('div.blockChoices'),
         create: function() {
+            BlockChooser.insertAddBlockButton();
             let blockChoices = window.Hat.getBlocks();
             for (let [slug, block] of Object.entries(blockChoices)) {
                 let button = new DomButton(block.description, block.icon, 'choiceBtn', block.name); 
@@ -20,16 +21,26 @@ let Editor = function(containerEl, data) {
                     control.addBlock(true, false, button.dataset.slug);
                 });
             };
-            Elements.container.append(BlockChooser.choiceDiv);
+            Elements.newBlockContainer.append(BlockChooser.choiceDiv);
+        },
+        insertAddBlockButton: function() {
+            var button = new DomEl('button#addBlock[title=Create a new block by clicking here. You will be taken to the block type selector]');
+            var icon = new DomEl('i.fas.fa-plus-square');
+            button.innerHTML = icon.outerHTML + ' Add block';
+            button.addEventListener('click', function() {
+                BlockChooser.toggle(this);
+            });
+            Elements.newBlockContainer.append(button);
         },
         toggle: function(originButton) {
             let ChoiceDiv = BlockChooser.choiceDiv;
             if (ChoiceDiv.classList.contains('show')) {
                 ChoiceDiv.classList.remove('show');
             } else {
-                ChoiceDiv.style.left = originButton.offsetLeft + (originButton.offsetWidth/2) + 'px';
-                ChoiceDiv.style.top = originButton.offsetTop + originButton.offsetHeight + 'px';
                 ChoiceDiv.classList.add('show');
+                setTimeout(function() {
+                    ChoiceDiv.children[ChoiceDiv.children.length-1].scrollIntoView({behavior: 'smooth'});
+                }, 400);
                 ChoiceDiv.children[0].focus();
             }
         }
@@ -37,7 +48,8 @@ let Editor = function(containerEl, data) {
     let BlockCount = 0;
     let Elements = {
         blockHolder: false,
-        container: false
+        container: false,
+        newBlockContainer: new DomEl('div#newBlockContainer')
     };
     let Events = {
         fire: function(eventName, element=Elements.blockHolder) {
@@ -46,20 +58,11 @@ let Editor = function(containerEl, data) {
     };
     let Internal = {
         blockCount: 0,
-        insertAddBlockButton: function() {
-            var a = new DomEl('a.block[title=Create a new block by clicking here. You will be taken to the block type selector][href="javascript:void(0)"]');
-            var icon = new DomEl('i.fas.fa-plus-square');
-            a.innerHTML = icon.outerHTML + ' Add block';
-            a.addEventListener('click', function() {
-                BlockChooser.toggle(this);
-            });
-            Elements.container.append(a);
-        },
         initialize: function(containerEl, data) {
             Elements.container = containerEl;
             Elements.blockHolder = document.createElement('div');
             Elements.container.append(Elements.blockHolder);
-            Internal.insertAddBlockButton();
+            Elements.container.append(Elements.newBlockContainer);
             if (data) {
                 data.forEach(function(blockData) {
                     Interface.loadBlock(blockData);

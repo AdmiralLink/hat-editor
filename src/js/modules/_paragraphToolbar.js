@@ -140,9 +140,9 @@ class ParagraphToolbar {
         image.modalContainer.addEventListener('uploaded', function(e) {
             toolbar.returnCursor(sel, range);
             if (toolbar.parentBlock.view == 'content') {
-                document.execCommand('insertHTML', false, image.imageEl.outerHTML);
+                document.execCommand('insertHTML', false, image.uploader.imageEl.outerHTML);
             } else {
-                document.execCommand('insertText', false, image.imageEl.outerHTML);
+                document.execCommand('insertText', false, image.uploader.imageEl.outerHTML);
             }
         });
         image.modalContainer.addEventListener('canceled', function(e) {
