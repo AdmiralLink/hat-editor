@@ -1,3 +1,7 @@
+# 0.4.3
+## MODIFIED
+- Switched index.html image URL back to localhost
+
 # 0.4.2
 ## MODIFIED
 - Readme updates
