@@ -12,6 +12,7 @@ class ParagraphBlock extends Block {
         this.el.classList.add('paragraph');
         this.contentEl = new DomEl('div.contentContainer');
         this.editEl = new DomEl('div[contentEditable=true].editContainer');
+        // htmlEl is a contenteditable div, not a textarea, because textareas have too many issues re:selections, and the contenteditable div is manageable
         this.htmlEl = new DomEl('div.htmlView[contentEditable=true].flip');
         this.contentEl.appendChild(this.editEl);
         this.contentEl.appendChild(this.htmlEl);

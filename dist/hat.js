@@ -3766,6 +3766,7 @@
                   BlockChooser.choiceDiv.append(button);
                   let control = Interface;
                   button.addEventListener('click', function(e) {
+                      e.preventDefault();
                       BlockChooser.toggle();
                       let button = e.target.closest('button');
                       control.addBlock(true, false, button.dataset.slug);
@@ -3776,7 +3777,8 @@
               var button = new DomEl('button#addBlock[title=Create a new block by clicking here. You will be taken to the block type selector]');
               var icon = new DomEl('i.fas.fa-plus-square');
               button.innerHTML = icon.outerHTML + ' Add block';
-              button.addEventListener('click', function() {
+              button.addEventListener('click', function(e) {
+                  e.preventDefault();
                   BlockChooser.toggle(this);
               });
               Elements.newBlockContainer.append(button);
@@ -5462,6 +5464,7 @@
           this.el.classList.add('paragraph');
           this.contentEl = new DomEl('div.contentContainer');
           this.editEl = new DomEl('div[contentEditable=true].editContainer');
+          // htmlEl is a contenteditable div, not a textarea, because textareas have too many issues re:selections, and the contenteditable div is manageable
           this.htmlEl = new DomEl('div.htmlView[contentEditable=true].flip');
           this.contentEl.appendChild(this.editEl);
           this.contentEl.appendChild(this.htmlEl);

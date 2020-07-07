@@ -16,6 +16,7 @@ let Editor = function(containerEl, data) {
                 BlockChooser.choiceDiv.append(button);
                 let control = Interface;
                 button.addEventListener('click', function(e) {
+                    e.preventDefault();
                     BlockChooser.toggle();
                     let button = e.target.closest('button');
                     control.addBlock(true, false, button.dataset.slug);
@@ -27,7 +28,8 @@ let Editor = function(containerEl, data) {
             var button = new DomEl('button#addBlock[title=Create a new block by clicking here. You will be taken to the block type selector]');
             var icon = new DomEl('i.fas.fa-plus-square');
             button.innerHTML = icon.outerHTML + ' Add block';
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
                 BlockChooser.toggle(this);
             });
             Elements.newBlockContainer.append(button);

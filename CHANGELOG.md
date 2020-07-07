@@ -1,3 +1,7 @@
+# 0.4.4
+## MODIFIED
+- Add block button, block chooser buttons now e.preventDefault()
+
 # 0.4.3
 ## MODIFIED
 - Switched index.html image URL back to localhost
