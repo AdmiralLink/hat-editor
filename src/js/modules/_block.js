@@ -52,14 +52,17 @@ class Block {
         blockContainer.addEventListener('blockChanged', function() {
             block.checkBlockSettingsControls();
         });
-        this.upButton.addEventListener('click', function() {
+        this.upButton.addEventListener('click', function(e) {
+            e.preventDefault();
             block.moveBlock('up');
         });
-        this.downButton.addEventListener('click', function() {
+        this.downButton.addEventListener('click', function(e) { 
+            e.preventDefault();
             block.moveBlock('down')
         });
 
-        this.deleteButton.addEventListener('click', function() {
+        this.deleteButton.addEventListener('click', function(e) {
+            e.preventDefault();
             let modal = new MiniModal({
                 cancelButtonTitle: 'Do not delete this block',
                 confirmButtonClass: 'deleteBtn',

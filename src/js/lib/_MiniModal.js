@@ -13,20 +13,26 @@ class MiniModal {
 
     addClickHandlers() {
         let modal = this;
-        this.backgroundDiv.addEventListener('click', function() {
-            modal.close();
-        });
+        if (this.options.closeOnBackgroundClick) {
+            this.backgroundDiv.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.close();
+            });
+        }
         if (this.options.closeX) {
-            this.closeBtn.addEventListener('click', function() {
+            this.closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 modal.close();
             })
         }
         if (this.options.confirm) {
-            this.cancelBtn.addEventListener('click', function() {
+            this.cancelBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 modal.close();        
             });
         }
-        this.confirmBtn.addEventListener('click', function() {
+        this.confirmBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             modal.confirm();
         });
         this.modalContainer.addEventListener('keydown', function(e) {

@@ -4,11 +4,17 @@ import DomEl from "./_DomEl";
 export default Ajax;
 
 class Ajax {
-    constructor(url, data, progressBar) {
+    constructor(url, data, progressBar, method='POST', returnObj=false) {
         this.xhr = new XMLHttpRequest();
-        let fd = new FormData();
-        for (let [key,value] of Object.entries(data)) {
-            fd.append(key, value);
+        let fd = false;
+        if (data) {
+            fd = new FormData();
+            for (let [key,value] of Object.entries(data)) {
+                if (typeof(value) == 'object') {
+                    value = JSON.stringify(value);
+                }
+                fd.append(key, value);
+            }
         }
         var xhr = new XMLHttpRequest();
         if (progressBar) {
@@ -16,40 +22,47 @@ class Ajax {
                 progressBar.update( Math.round( (e.loaded * 100) /e.total) );
             });
         }
-        let eventEl = new DomEl('div');
+        this.eventEl = new DomEl('div');
         xhr.responseType = 'json';
-        xhr.open('POST', url);
-        xhr.send(fd);
-        xhr.onerror = function() { new ErrorModal('An error occurred during upload.'); }
+        xhr.open(method, url);
+        if (data) {
+            xhr.send(fd);
+        }
+        xhr.onerror = function() { new ErrorModal('An error occurred.'); };
         let ajax = this;
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
                     if (xhr.response.type == 'error') {
-                        new ErrorModal(xhr.response.message);
-                        ajax.throwError(eventEl, progressBar);
+                        new ErrorModal(xhr.response.content);
+                        ajax.throwError(ajax.eventEl, progressBar);
                     } else {
                         for (let [key, value] of Object.entries(xhr.response)) {
-                            eventEl.setAttribute(key, value);
+                            ajax.response = xhr.response;
+                            ajax.eventEl.setAttribute(key, value);
                         }
                         if (progressBar) {
                             progressBar.update(100);
                         }
-                        eventEl.dispatchEvent(new Event('success'));
+                        ajax.eventEl.dispatchEvent(new Event('success'));
                     }
                 } else if (xhr.status == 410 || xhr.status === 404 || xhr.status == 403 || xhr.status === 401 ) {
-                    new ErrorModal(xhr.status + ', check your upload URL');
-                    ajax.throwError(eventEl, progressBar);
-                } else if (xhr.status === 500, xhr.status === 414, xhr.status === 444, xhr.status === 431 || xhr.status === 413) {
+                    new ErrorModal(xhr.status + ', check your URL');
+                    ajax.throwError(ajax.eventEl, progressBar);
+                } else if (xhr.status === 431 || xhr.status === 413) {
                     new ErrorModal(xhr.status + ', check your server settings');
-                    ajax.throwError(eventEl, progressBar);
+                    ajax.throwError(ajax.eventEl, progressBar);
                 } else {
-                    new ErrorModal('Upload returned a ' + xhr.status + ' error');
-                    ajax.throwError(eventEl, progressBar);
+                    new ErrorModal('Networking returned a ' + xhr.status + ' error');
+                    ajax.throwError(ajax.eventEl, progressBar);
                 }
             }
         };
-        return eventEl;
+        if (returnObj) {
+            return this;
+        } else {
+            return this.eventEl;
+        }
     }
 
     throwError(eventEl, progressBar) {

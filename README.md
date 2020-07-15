@@ -35,6 +35,20 @@ I will happily fix all normal use-case bugs. I am not interested in tracking dow
 
 I will implement feature requests I think are useful. I will be more likely to implement feature requests that come with pull requests, but I'm not going to implement something just because it has a PR. See above re:forking.
 
+## Compilation
+
+Install:
+
+- Node  
+- Rollup  
+- rollup-plugin-browsersync  
+- rollup-plugin-node-resolve  
+- rollup-plugin-sass  
+
+Run this command in the root directory:  
+
+`rollup -c rollup.config.js --watch`
+
 ## Usage
 
 The basics for handling image uploads can be found in upload.php

@@ -46,6 +46,9 @@ class ParagraphToolbar {
                 }
             }, 1);
         });
+        toolbar.contextButtons.forEach(function(el) {
+          el.setAttribute('disabled', 'disabled');
+      });
     }
 
     addFormattingButtons() {
@@ -68,7 +71,8 @@ class ParagraphToolbar {
         let toolbar = this; 
         ['h1','h2','h3','h4'].forEach(function(header) {
             let btn = new DomButton('Insert/convert to ' + header, false, 'textBtn', header);
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
                 new SelectionWrapper(header, toolbar.parentBlock.view);
             });
             toolbar.contextButtons.push(btn);
@@ -79,14 +83,14 @@ class ParagraphToolbar {
     addHtmlView() {
         let toolbar = this;
         let el = new DomButton('View HTML', 'laptop-code');
-        el.addEventListener('click', function() {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
             toolbar.toggleHtmlView();
         });
         toolbar.container.append(el);
     }
 
     addLink() {
-        let targetLink = false;
         let sel = window.getSelection();
         let range = sel.getRangeAt(0);
         let options = {
@@ -118,7 +122,7 @@ class ParagraphToolbar {
                 let theLink = sel.anchorNode.parentElement;
                 theLink.setAttribute('href', values.href);
                 if (options.blank && theLink.getAttribute('target') !== '_blank') {
-                    theLink.setAttribute('target', '_blank')
+                    theLink.setAttribute('target', '_blank');
                 } else if ( !options.blank && theLink.getAttribute('target') == '_blank') {
                     theLink.setAttribute('target', '');
                 }
@@ -126,6 +130,7 @@ class ParagraphToolbar {
                 return true;
             }
             new SelectionWrapper('a', toolbar.parentBlock.view, values);
+            toolbar.checkFormatting();
         });
         link.modalContainer.addEventListener('canceled', function(e) {
             toolbar.returnCursor(sel, range);
@@ -153,7 +158,8 @@ class ParagraphToolbar {
     addImageButton() {
         let toolbar = this;
         let el = new DomButton('Insert image', 'image');
-        el.addEventListener('click', function() {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
             toolbar.addImage();
         });
         this.contextButtons.push(el);
@@ -163,21 +169,24 @@ class ParagraphToolbar {
     addLinkButton() {
         let toolbar = this;
         let el = new DomButton('Insert Link', 'link');
-        el.addEventListener('click', function() {
+        el.addEventListener('click', function(e) {
+            e.preventDefault();
             toolbar.addLink();
         });
         this.contextButtons.push(el);
         toolbar.container.append(el);
     }
-
+    
     addUnlinkButton() {
-        let toolbar = this;
-        this.unlinkBtn = new DomButton('Unlink text', 'unlink');
-        this.unlinkBtn.addEventListener('click', function() {
-            toolbar.unlink();
-        });
-        toolbar.container.append(this.unlinkBtn);
-    }
+      let toolbar = this;
+      this.unlinkBtn = new DomButton('Unlink text', 'unlink');
+      this.unlinkBtn.setAttribute('disabled', true);
+      this.unlinkBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          toolbar.unlink();
+      });
+      toolbar.container.append(this.unlinkBtn);
+  }
 
     checkForDeepTag(tag) {
         if (!sel) {
@@ -199,23 +208,26 @@ class ParagraphToolbar {
         let found = false;
         let sel = window.getSelection();
         let range = false;
+        let anchor = false;
         if (sel && sel.rangeCount > 0) {
             range = sel.getRangeAt(0);
         }
-        let anchor = sel.anchorNode.parentElement;
-        let focus = sel.focusNode.parentElement;
-        // Check that we're actually in the edit container
-        if (this.parentBlock.editEl.contains(anchor) && ( anchor.tagName.toLowerCase() == tag || focus.tagName.toLowerCase() == tag)) {
-            found = true;
+        if (sel.anchorNode) {
+          anchor = sel.anchorNode.parentElement;
+          let focus = sel.focusNode.parentElement;
+          // Check that we're actually in the edit container
+          if (this.parentBlock.editEl.contains(anchor) && ( anchor.tagName.toLowerCase() == tag || focus.tagName.toLowerCase() == tag)) {
+              found = true;
+          }
         }
         switch (tag) {
-            case 'a':
-                if (found || this.parentBlock.editEl.contains(anchor) && this.checkForDeepTag(tag)) {
-                    btn.removeAttribute('disabled');
-                } else {
-                    btn.setAttribute('disabled', true);
-                }
-                break;
+          case 'a':
+              if (found || (anchor && this.parentBlock.editEl.contains(anchor)) && this.checkForDeepTag(tag)) {
+                  btn.removeAttribute('disabled');
+              } else {
+                  btn.setAttribute('disabled', true);
+              }
+              break;
         }
     }
 
@@ -239,6 +251,9 @@ class ParagraphToolbar {
         this.parentBlock.editEl.addEventListener('keydown', debounce((e) => {
             toolbar.checkFormatting();
         }, 350));
+        this.parentBlock.editEl.addEventListener('click', function(e) {
+          toolbar.checkFormatting();
+        });
         this.parentBlock.editEl.addEventListener('focusin', function(e) {
             toolbar.checkFormatting();
         });

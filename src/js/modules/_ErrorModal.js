@@ -6,7 +6,7 @@ import DomEl from '../lib/_DomEl';
 class ErrorModal extends MiniModal {
     constructor(errorMessage) {
         let errorDiv = new DomEl('div.error');
-        errorDiv.append(new DomEl('i.fas.fa-exclamation-circle'));
+        errorDiv.append(new DomEl('i.fas.fa-exclamation-circle.fa-2x'));
         errorDiv.append(new DomEl('br'));
         errorDiv.append(new DomEl('p').innerText = errorMessage);
         super({
@@ -14,8 +14,9 @@ class ErrorModal extends MiniModal {
             confirmButtonClass: false,
             contentType: 'node',
             content: errorDiv,
+            focusTarget: errorDiv,
             header: 'Error',
-            special: 'super'
+            notificationText: errorMessage
         });
     }
 }

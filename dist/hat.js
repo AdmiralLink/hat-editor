@@ -3834,7 +3834,23 @@
                       Internal.sorting.option('sorting', true);
                   }
               });
-          } 
+          },
+          removeBlock: function(block, defaultAction=true) {
+              var blockId = block.el.id;
+              if (Blocks.hasOwnProperty(blockId)) {
+                  block.getPosition();
+                  if (defaultAction) {
+                      let newFocus = (block.position.first) ? block.el.nextSibling.id : block.el.previousSibling.id;
+                      Blocks[newFocus].focus();
+                  }
+                  block.el.remove();
+                  Blocks.splice(blockId);
+                  BlockCount--;
+                  if (defaultAction) {
+                      Events.fire('blockChanged');
+                  }
+              }
+          }
       };
       let Interface = {
           addBlock: function(focus=true,position=false, type=window.Hat.getDefault(), data=false) {
@@ -3887,20 +3903,22 @@
           loadBlock: function(data) {
               let block = Interface.addBlock(false, false, data.type, data);
           },
-          removeBlock: function(block) {
-              var blockId = block.el.id;
-              if (BlockCount > 1){
-                  if (Blocks.hasOwnProperty(blockId)) {
-                      block.getPosition();
-                      let newFocus = (block.position.first) ? block.el.nextSibling.id : block.el.previousSibling.id;
-                      Blocks[newFocus].focus();
-                      block.el.remove();
-                      Blocks.splice(blockId);
-                      BlockCount--;
-                      Events.fire('blockChanged');
-                  }
+          removeAllBlocks: function(replacementData) {
+              for (let [id, block] of Object.entries(Blocks)) {
+                  Internal.removeBlock(block, false);
+              }            if (replacementData) {
+                  replacementData.forEach(function(blockData) {
+                      Interface.loadBlock(blockData);
+                  });
+              } else {
+                  Interface.addBlock();
               }
-          },
+            },
+            removeBlock: function(block, force=false) {
+                if (BlockCount > 1){
+                  Internal.removeBlock(block);
+                }
+            },
       };
       Internal.initialize(containerEl, data);
       return Interface;
@@ -4003,20 +4021,26 @@
 
       addClickHandlers() {
           let modal = this;
-          this.backgroundDiv.addEventListener('click', function() {
-              modal.close();
-          });
+          if (this.options.closeOnBackgroundClick) {
+              this.backgroundDiv.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  modal.close();
+              });
+          }
           if (this.options.closeX) {
-              this.closeBtn.addEventListener('click', function() {
+              this.closeBtn.addEventListener('click', function(e) {
+                  e.preventDefault();
                   modal.close();
               });
           }
           if (this.options.confirm) {
-              this.cancelBtn.addEventListener('click', function() {
+              this.cancelBtn.addEventListener('click', function(e) {
+                  e.preventDefault();
                   modal.close();        
               });
           }
-          this.confirmBtn.addEventListener('click', function() {
+          this.confirmBtn.addEventListener('click', function(e) {
+              e.preventDefault();
               modal.confirm();
           });
           this.modalContainer.addEventListener('keydown', function(e) {
@@ -4378,14 +4402,17 @@
           blockContainer.addEventListener('blockChanged', function() {
               block.checkBlockSettingsControls();
           });
-          this.upButton.addEventListener('click', function() {
+          this.upButton.addEventListener('click', function(e) {
+              e.preventDefault();
               block.moveBlock('up');
           });
-          this.downButton.addEventListener('click', function() {
+          this.downButton.addEventListener('click', function(e) { 
+              e.preventDefault();
               block.moveBlock('down');
           });
 
-          this.deleteButton.addEventListener('click', function() {
+          this.deleteButton.addEventListener('click', function(e) {
+              e.preventDefault();
               let modal = new MiniModal({
                   cancelButtonTitle: 'Do not delete this block',
                   confirmButtonClass: 'deleteBtn',
@@ -4579,7 +4606,7 @@
   class ErrorModal$1 extends MiniModal {
       constructor(errorMessage) {
           let errorDiv = new DomEl('div.error');
-          errorDiv.append(new DomEl('i.fas.fa-exclamation-circle'));
+          errorDiv.append(new DomEl('i.fas.fa-exclamation-circle.fa-2x'));
           errorDiv.append(new DomEl('br'));
           errorDiv.append(new DomEl('p').innerText = errorMessage);
           super({
@@ -4587,18 +4614,25 @@
               confirmButtonClass: false,
               contentType: 'node',
               content: errorDiv,
+              focusTarget: errorDiv,
               header: 'Error',
-              special: 'super'
+              notificationText: errorMessage
           });
       }
   }
 
   class Ajax {
-      constructor(url, data, progressBar) {
+      constructor(url, data, progressBar, method='POST', returnObj=false) {
           this.xhr = new XMLHttpRequest();
-          let fd = new FormData();
-          for (let [key,value] of Object.entries(data)) {
-              fd.append(key, value);
+          let fd = false;
+          if (data) {
+              fd = new FormData();
+              for (let [key,value] of Object.entries(data)) {
+                  if (typeof(value) == 'object') {
+                      value = JSON.stringify(value);
+                  }
+                  fd.append(key, value);
+              }
           }
           var xhr = new XMLHttpRequest();
           if (progressBar) {
@@ -4606,40 +4640,47 @@
                   progressBar.update( Math.round( (e.loaded * 100) /e.total) );
               });
           }
-          let eventEl = new DomEl('div');
+          this.eventEl = new DomEl('div');
           xhr.responseType = 'json';
-          xhr.open('POST', url);
-          xhr.send(fd);
-          xhr.onerror = function() { new ErrorModal$1('An error occurred during upload.'); };
+          xhr.open(method, url);
+          if (data) {
+              xhr.send(fd);
+          }
+          xhr.onerror = function() { new ErrorModal$1('An error occurred.'); };
           let ajax = this;
           xhr.onreadystatechange = function() {
               if (xhr.readyState === 4) {
                   if (xhr.status === 200) {
                       if (xhr.response.type == 'error') {
-                          new ErrorModal$1(xhr.response.message);
-                          ajax.throwError(eventEl, progressBar);
+                          new ErrorModal$1(xhr.response.content);
+                          ajax.throwError(ajax.eventEl, progressBar);
                       } else {
                           for (let [key, value] of Object.entries(xhr.response)) {
-                              eventEl.setAttribute(key, value);
+                              ajax.response = xhr.response;
+                              ajax.eventEl.setAttribute(key, value);
                           }
                           if (progressBar) {
                               progressBar.update(100);
                           }
-                          eventEl.dispatchEvent(new Event('success'));
+                          ajax.eventEl.dispatchEvent(new Event('success'));
                       }
                   } else if (xhr.status == 410 || xhr.status === 404 || xhr.status == 403 || xhr.status === 401 ) {
-                      new ErrorModal$1(xhr.status + ', check your upload URL');
-                      ajax.throwError(eventEl, progressBar);
+                      new ErrorModal$1(xhr.status + ', check your URL');
+                      ajax.throwError(ajax.eventEl, progressBar);
                   } else if (xhr.status === 431 || xhr.status === 413) {
                       new ErrorModal$1(xhr.status + ', check your server settings');
-                      ajax.throwError(eventEl, progressBar);
+                      ajax.throwError(ajax.eventEl, progressBar);
                   } else {
-                      new ErrorModal$1('Upload returned a ' + xhr.status + ' error');
-                      ajax.throwError(eventEl, progressBar);
+                      new ErrorModal$1('Networking returned a ' + xhr.status + ' error');
+                      ajax.throwError(ajax.eventEl, progressBar);
                   }
               }
           };
-          return eventEl;
+          if (returnObj) {
+              return this;
+          } else {
+              return this.eventEl;
+          }
       }
 
       throwError(eventEl, progressBar) {
@@ -5024,7 +5065,8 @@
   class BrowserFormattingButton {
       constructor(title, icon, tag, parentBlock) {
           let button = new DomButton(title, icon);
-          button.addEventListener('click', function() {
+          button.addEventListener('click', function(e) {
+              e.preventDefault();
               new SelectionWrapper(tag, parentBlock.view);       
           });
           return button;
@@ -5188,6 +5230,9 @@
                   }
               }, 1);
           });
+          toolbar.contextButtons.forEach(function(el) {
+            el.setAttribute('disabled', 'disabled');
+        });
       }
 
       addFormattingButtons() {
@@ -5210,7 +5255,8 @@
           let toolbar = this; 
           ['h1','h2','h3','h4'].forEach(function(header) {
               let btn = new DomButton('Insert/convert to ' + header, false, 'textBtn', header);
-              btn.addEventListener('click', function() {
+              btn.addEventListener('click', function(e) {
+                  e.preventDefault();
                   new SelectionWrapper(header, toolbar.parentBlock.view);
               });
               toolbar.contextButtons.push(btn);
@@ -5221,7 +5267,8 @@
       addHtmlView() {
           let toolbar = this;
           let el = new DomButton('View HTML', 'laptop-code');
-          el.addEventListener('click', function() {
+          el.addEventListener('click', function(e) {
+              e.preventDefault();
               toolbar.toggleHtmlView();
           });
           toolbar.container.append(el);
@@ -5267,6 +5314,7 @@
                   return true;
               }
               new SelectionWrapper('a', toolbar.parentBlock.view, values);
+              toolbar.checkFormatting();
           });
           link.modalContainer.addEventListener('canceled', function(e) {
               toolbar.returnCursor(sel, range);
@@ -5294,7 +5342,8 @@
       addImageButton() {
           let toolbar = this;
           let el = new DomButton('Insert image', 'image');
-          el.addEventListener('click', function() {
+          el.addEventListener('click', function(e) {
+              e.preventDefault();
               toolbar.addImage();
           });
           this.contextButtons.push(el);
@@ -5304,21 +5353,24 @@
       addLinkButton() {
           let toolbar = this;
           let el = new DomButton('Insert Link', 'link');
-          el.addEventListener('click', function() {
+          el.addEventListener('click', function(e) {
+              e.preventDefault();
               toolbar.addLink();
           });
           this.contextButtons.push(el);
           toolbar.container.append(el);
       }
-
+      
       addUnlinkButton() {
-          let toolbar = this;
-          this.unlinkBtn = new DomButton('Unlink text', 'unlink');
-          this.unlinkBtn.addEventListener('click', function() {
-              toolbar.unlink();
-          });
-          toolbar.container.append(this.unlinkBtn);
-      }
+        let toolbar = this;
+        this.unlinkBtn = new DomButton('Unlink text', 'unlink');
+        this.unlinkBtn.setAttribute('disabled', true);
+        this.unlinkBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            toolbar.unlink();
+        });
+        toolbar.container.append(this.unlinkBtn);
+    }
 
       checkForDeepTag(tag) {
           if (!sel) {
@@ -5340,23 +5392,26 @@
           let found = false;
           let sel = window.getSelection();
           let range = false;
+          let anchor = false;
           if (sel && sel.rangeCount > 0) {
               range = sel.getRangeAt(0);
           }
-          let anchor = sel.anchorNode.parentElement;
-          let focus = sel.focusNode.parentElement;
-          // Check that we're actually in the edit container
-          if (this.parentBlock.editEl.contains(anchor) && ( anchor.tagName.toLowerCase() == tag || focus.tagName.toLowerCase() == tag)) {
-              found = true;
+          if (sel.anchorNode) {
+            anchor = sel.anchorNode.parentElement;
+            let focus = sel.focusNode.parentElement;
+            // Check that we're actually in the edit container
+            if (this.parentBlock.editEl.contains(anchor) && ( anchor.tagName.toLowerCase() == tag || focus.tagName.toLowerCase() == tag)) {
+                found = true;
+            }
           }
           switch (tag) {
-              case 'a':
-                  if (found || this.parentBlock.editEl.contains(anchor) && this.checkForDeepTag(tag)) {
-                      btn.removeAttribute('disabled');
-                  } else {
-                      btn.setAttribute('disabled', true);
-                  }
-                  break;
+            case 'a':
+                if (found || (anchor && this.parentBlock.editEl.contains(anchor)) && this.checkForDeepTag(tag)) {
+                    btn.removeAttribute('disabled');
+                } else {
+                    btn.setAttribute('disabled', true);
+                }
+                break;
           }
       }
 
@@ -5380,6 +5435,9 @@
           this.parentBlock.editEl.addEventListener('keydown', debounce((e) => {
               toolbar.checkFormatting();
           }, 350));
+          this.parentBlock.editEl.addEventListener('click', function(e) {
+            toolbar.checkFormatting();
+          });
           this.parentBlock.editEl.addEventListener('focusin', function(e) {
               toolbar.checkFormatting();
           });
@@ -5639,8 +5697,10 @@
       };
       let Interface = {   
           createEditor: function(el) {
-              EditorRegistry.add(new Editor(el));
-          },
+              let ed = new Editor(el);  
+              EditorRegistry.add(ed);
+              return ed;
+            },
           getBlock: function(blockName) {
               if (Interface.hasBlock(blockName)) {
                   return BlockRegistry.objects[blockName];
@@ -5688,14 +5748,22 @@
           start: function(options) {
               for (let [key, value] of Object.entries(options)) {
                   Options[key] = value;
-              }            if (Options.data) {
-                  EditorRegistry.add(new Editor(document.querySelector(Options.selector), Options.data));
+              } 
+              if (Options.data) {
+                  let ed = new Editor(document.querySelector(Options.selector), Options.data);
+                  EditorRegistry.add(ed);
+                  return ed;
               } else if (Options.init) {
-                  for (var el of document.querySelectorAll(Options.selector)) {
-                      Interface.createEditor(el);
+                  let elements = document.querySelectorAll(Options.selector);
+                  if (elements.length == 1) {
+                      return Interface.createEditor(elements[0]);
+                  } else {
+                      for (var el of elements) {
+                          Interface.createEditor(el);
+                      }
                   }
               }
-          }
+            }
       };
       return Interface;
   }();

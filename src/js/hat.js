@@ -41,8 +41,10 @@ window.Hat = function(init, options) {
     };
     let Interface = {   
         createEditor: function(el) {
-            EditorRegistry.add(new Editor(el));
-        },
+            let ed = new Editor(el);  
+            EditorRegistry.add(ed);
+            return ed;
+          },
         getBlock: function(blockName) {
             if (Interface.hasBlock(blockName)) {
                 return BlockRegistry.objects[blockName];
@@ -90,15 +92,22 @@ window.Hat = function(init, options) {
         start: function(options) {
             for (let [key, value] of Object.entries(options)) {
                 Options[key] = value;
-            };
+            } 
             if (Options.data) {
-                EditorRegistry.add(new Editor(document.querySelector(Options.selector), Options.data));
+                let ed = new Editor(document.querySelector(Options.selector), Options.data);
+                EditorRegistry.add(ed);
+                return ed;
             } else if (Options.init) {
-                for (var el of document.querySelectorAll(Options.selector)) {
-                    Interface.createEditor(el)
+                let elements = document.querySelectorAll(Options.selector);
+                if (elements.length == 1) {
+                    return Interface.createEditor(elements[0]);
+                } else {
+                    for (var el of elements) {
+                        Interface.createEditor(el);
+                    }
                 }
             }
-        }
+          }
     }
     return Interface;
 }();

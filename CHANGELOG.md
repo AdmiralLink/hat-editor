@@ -1,3 +1,25 @@
+# 0.5.0
+## ADDED
+- RemoveAllBlocks in Editor
+- Toolbar disables all buttons on startup in case we have different blocks focused at first
+## MODIFIED
+- Ajax now handles POST/GET, can send objects (not just strings), has choice to return object or eventEl
+- Editor's RemoveBlocks refactored to allow for RemoveAllBlocks
+- Toolbar's unlink button disabled after use; CheckForTag now checks more to make sure we're in the RIGHT edit container; FormattingCheck set after editEl focused into by click
+- Hat's createEditor now returns the editor you create
+- Hat.start() returns new editor when data is passed to it
+- MiniModal now allows for more things to be added after construct; adds NotificationTarget and NotificationText for non-text content to be accessibly explained via screen reader; adds proper aria roles for basic modals (and the controls to customize them as needed)
+## REMOVED
+- Flatpickr
+
+# 0.4.5
+## ADDED
+- Check for closeOnBackgroundClick before setting click action
+- Compilation instructions to readme
+- e.preventDefault to every button we can find
+## MODIFIED
+- Ajax now checks to see if data was included before trying to send it
+
 # 0.4.4
 ## MODIFIED
 - Add block button, block chooser buttons now e.preventDefault()

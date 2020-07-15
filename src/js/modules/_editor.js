@@ -85,7 +85,23 @@ let Editor = function(containerEl, data) {
                     Internal.sorting.option('sorting', true);
                 }
             });
-        } 
+        },
+        removeBlock: function(block, defaultAction=true) {
+            var blockId = block.el.id;
+            if (Blocks.hasOwnProperty(blockId)) {
+                block.getPosition();
+                if (defaultAction) {
+                    let newFocus = (block.position.first) ? block.el.nextSibling.id : block.el.previousSibling.id;
+                    Blocks[newFocus].focus();
+                }
+                block.el.remove();
+                Blocks.splice(blockId);
+                BlockCount--;
+                if (defaultAction) {
+                    Events.fire('blockChanged');
+                }
+            }
+        }
     }
     let Interface = {
         addBlock: function(focus=true,position=false, type=window.Hat.getDefault(), data=false) {
@@ -139,20 +155,23 @@ let Editor = function(containerEl, data) {
         loadBlock: function(data) {
             let block = Interface.addBlock(false, false, data.type, data);
         },
-        removeBlock: function(block) {
-            var blockId = block.el.id;
-            if (BlockCount > 1){
-                if (Blocks.hasOwnProperty(blockId)) {
-                    block.getPosition();
-                    let newFocus = (block.position.first) ? block.el.nextSibling.id : block.el.previousSibling.id;
-                    Blocks[newFocus].focus();
-                    block.el.remove();
-                    Blocks.splice(blockId);
-                    BlockCount--;
-                    Events.fire('blockChanged');
-                }
+        removeAllBlocks: function(replacementData) {
+            for (let [id, block] of Object.entries(Blocks)) {
+                Internal.removeBlock(block, false);
+            };
+            if (replacementData) {
+                replacementData.forEach(function(blockData) {
+                    Interface.loadBlock(blockData);
+                });
+            } else {
+                Interface.addBlock();
             }
-        },
+          },
+          removeBlock: function(block, force=false) {
+              if (BlockCount > 1){
+                Internal.removeBlock(block);
+              }
+          },
     };
     Internal.initialize(containerEl, data);
     return Interface;
