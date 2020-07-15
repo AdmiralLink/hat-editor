@@ -1,8 +1,3 @@
-export default MiniModal;
-
-import DomEl from "./_DomEl";
-import DomButton from "./_DomButton";
-
 class MiniModal {
     constructor(content, childClass=false) {
         this.confirmed = false;
@@ -19,12 +14,35 @@ class MiniModal {
                 modal.close();
             });
         }
-        if (this.options.closeX) {
-            this.closeBtn.addEventListener('click', function(e) {
+        this.modalContainer.addEventListener('keydown', function(e) {
+            let option = this.options;
+            if (e.keyCode == 13) {
                 e.preventDefault();
-                modal.close();
-            })
+                if (modal.options.enterConfirms) {
+                    modal.confirm();
+                }
+            }
+        });
+    }
+
+    addCloseX() {
+        this.closeBtn = new DomButton('Close modal', 'times-circle', 'closeBtn');
+        this.header.append(this.closeBtn);
+        let modal = this;
+        this.closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.close();
+        });
+    }
+
+    addConfirmButton() {
+        let modal = this;
+        if (!this.buttonBar) {
+            this.buttonBar = new DomEl('div.modal-buttons');
         }
+        this.confirmBtn = new DomButton(this.options.confirmButtonTitle, false, this.options.confirmButtonClass, this.options.confirmButtonText);
+        this.buttonBar.append(this.confirmBtn);
+        this.modalContainer.append(this.buttonBar);
         if (this.options.confirm) {
             this.cancelBtn.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -34,15 +52,6 @@ class MiniModal {
         this.confirmBtn.addEventListener('click', function(e) {
             e.preventDefault();
             modal.confirm();
-        });
-        this.modalContainer.addEventListener('keydown', function(e) {
-            let option = this.options;
-            if (e.keyCode == 13) {
-                e.preventDefault();
-                if (modal.options.enterConfirms) {
-                    modal.confirm();
-                }
-            }
         });
     }
 
@@ -69,8 +78,6 @@ class MiniModal {
     }
 
     buildModal() {
-        this.backgroundDiv = new DomEl('div.miniModal-background');
-        this.modalContainer = new DomEl('div.miniModal-container');
         if (this.options.modalClass) {
             if (typeof(this.options.modalClass) == 'string') {
                 this.options.modalClass = [this.options.modalClass];
@@ -87,29 +94,44 @@ class MiniModal {
             this.header.append(h2);
         }
         if (this.options.closeX) {
-            this.closeBtn = new DomButton('Close modal', 'times-circle', 'closeBtn');
-            this.header.append(this.closeBtn);
+            this.addCloseX();
         }
         this.modalContainer.append(this.header);
-        this.modalContent = new DomEl('div.modal-content');
+        this.modalContent = new DomEl('div.modal-content[tab-index=0]');
+        if (this.options.notificationText) {
+            this.notification.innerText = this.options.notificationText;
+        }
         if (this.options.contentType == 'text') {
             this.modalContent.innerText = this.options.content;
+            if (!this.options.notificationText) {
+                this.notification.innerText = this.options.content;
+            }
         } else if (this.options.contentType == 'node') {
             this.modalContent.append(this.options.content);
         } else {
             this.modalContent.innerHTML = this.options.content;
         }
-        this.modalContainer.append(this.modalContent);
-        let buttonBar = new DomEl('div.modal-buttons');
-        if (this.options.confirm) {
-            this.cancelBtn = new DomButton(this.options.cancelButtonTitle, false, this.options.cancelButtonClass, this.options.cancelButtonText);
-            buttonBar.append(this.cancelBtn);
-        } else {
-            buttonBar.style.textAlign = 'center';
+        if (this.options.notificationTarget) {
+            this.modalContainer.setAttribute('aria-describedby', this.options.notificationTarget);
         }
-        this.confirmBtn = new DomButton(this.options.confirmButtonTitle, false, this.options.confirmButtonClass, this.options.confirmButtonText);
-        buttonBar.append(this.confirmBtn);
-        this.modalContainer.append(buttonBar);
+        this.modalContainer.append(this.modalContent);
+        if (!this.options.noButtons) {
+            this.buttonBar = new DomEl('div.modal-buttons');
+            if (this.options.confirm) {
+                this.cancelBtn = new DomButton(this.options.cancelButtonTitle, false, this.options.cancelButtonClass, this.options.cancelButtonText);
+                this.buttonBar.append(this.cancelBtn);
+            } else {
+                this.buttonBar.style.textAlign = 'center';
+            }
+            this.addConfirmButton();
+        }
+    }
+
+    buildBasicStructure() {
+        let theTime = new Date().getMilliseconds();
+        this.notification = new DomEl('label.sr-only[aria-live="alert"]#alertModalNotifier' + theTime);
+        this.backgroundDiv = new DomEl('div.miniModal-background');
+        this.modalContainer = new DomEl('div.miniModal-container[aria-modal="true"]');
     }
 
     close() {
@@ -124,7 +146,6 @@ class MiniModal {
         setTimeout(function() {
             modal.backgroundDiv.remove();
             modal.modalContainer.remove();
-            delete this;
         }, 750);
     }
 
@@ -137,12 +158,17 @@ class MiniModal {
     }
 
     constructModal(content) {
+        this.buildBasicStructure();
         this.buildOptions(content);
         this.buildModal();
         this.addClickHandlers();
         this.addKeyboardHandlers();
         this.show();
-        return this.modalContainer;
+        if (this.options.returnObject) {
+            return this;
+        } else {
+            return this.modalContainer;
+        }
     }
 
     getDefaultOptions() {
@@ -161,7 +187,11 @@ class MiniModal {
             enterConfirms: true,
             focusTarget: false,
             header: false,
-            modalClass: false
+            modalClass: false,
+            noButtons: false,
+            notificationTarget: this.notification.id,
+            notificationText: false,
+            returnObject: false
         };
     }
 
@@ -170,14 +200,18 @@ class MiniModal {
         document.body.append(this.modalContainer);
         this.backgroundDiv.classList.add('show');
         this.modalContainer.classList.add('show');
+        let target = this.confirmBtn; 
         if (this.options.focusTarget) {
-            this.options.focusTarget.focus();
-        } else {
-            if (this.options.confirm) {
-                this.cancelBtn.focus();
+            if (typeof(this.options.focusTarget) == 'string') {
+                target = this[this.options.focusTarget];
             } else {
-                this.confirmBtn.focus();
-            }
+                target = this.options.focusTarget;
+            }   
+        } else if (this.options.confirm) {
+            target = this.cancelBtn;
         }
+        setTimeout(function() {
+            target.focus();
+        },0);
     }
 }
