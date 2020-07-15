@@ -9,8 +9,7 @@
 - Hat's createEditor now returns the editor you create
 - Hat.start() returns new editor when data is passed to it
 - MiniModal now allows for more things to be added after construct; adds NotificationTarget and NotificationText for non-text content to be accessibly explained via screen reader; adds proper aria roles for basic modals (and the controls to customize them as needed)
-## REMOVED
-- Flatpickr
+
 
 # 0.4.5
 ## ADDED
