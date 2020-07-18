@@ -8,12 +8,17 @@ class Ajax {
         this.xhr = new XMLHttpRequest();
         let fd = false;
         if (data) {
-            fd = new FormData();
-            for (let [key,value] of Object.entries(data)) {
-                if (typeof(value) == 'object') {
-                    value = JSON.stringify(value);
+            if (data.constructor && data.constructor.name && data.constructor.name == 'FormData') {
+                // Don't mess with data passed as FormData
+                fd = data;
+            } else {
+                fd = new FormData();
+                for (let [key,value] of Object.entries(data)) {
+                    if (typeof(value) == 'object') {
+                        value = JSON.stringify(value);
+                    }
+                    fd.append(key, value);
                 }
-                fd.append(key, value);
             }
         }
         var xhr = new XMLHttpRequest();

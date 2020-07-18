@@ -1,3 +1,7 @@
+# 0.5.1
+## MODIFIED
+- Ajax now allows you to pass data as a FormData prototype without modification
+
 # 0.5.0
 ## ADDED
 - RemoveAllBlocks in Editor
