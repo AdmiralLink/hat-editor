@@ -1,3 +1,7 @@
+# 0.5.2
+## MODIFIED
+- Added randomizer to IDs for checkbox component to prevent duplicates
+
 # 0.5.1
 ## MODIFIED
 - Ajax now allows you to pass data as a FormData prototype without modification

@@ -5,8 +5,9 @@ import DomEl from "./_DomEl";
 class Checkbox {
     constructor(name, labelDisplay, altTextOff, altTextChecked, value) {
         let checked = (value) ? '[checked]' : '';
-        this.box = new DomEl('input[type=checkbox][id=' + name + '][name=' + name + ']' + checked);
-        this.label = new DomEl('label[for=' + name + '][tabindex=0][describedby=Description' + name +'].checkbox');
+        let id = name + new Date().getMilliseconds();
+        this.box = new DomEl('input[type=checkbox][id=' + id + '][name=' + name + ']' + checked);
+        this.label = new DomEl('label[for=' + id + '][tabindex=0][describedby=Description' + name +'].checkbox');
         let notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#Description' + name);
         notification.innerText = (value) ? altTextChecked : altTextOff; 
         this.label.addEventListener('keydown', function(e) {
