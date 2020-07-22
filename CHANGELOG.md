@@ -1,3 +1,8 @@
+# 0.6.1
+## MODIFIED
+- Indent/outdent keyboard shortcuts in Paragraph Block now use ctrl + shift instead of just ctrl for parallelism
+- Updated readme shortcuts list
+
 # 0.6.0
 - ParagraphBlock keyboard shortcuts now preventDefault
 ## MODIFIED

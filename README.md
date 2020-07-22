@@ -69,7 +69,7 @@ The basics for handling image uploads can be found in upload.php
 - `⌘\ctrl` + `shift` + `2`: H2
 - `⌘\ctrl` + `shift` + `3`: H3
 - `⌘\ctrl` + `shift` + `4`: H4 
-- `⌘\ctrl` + `shift` + `o`: Ordered List
-- `⌘\ctrl` + `shift` + `u`: Unordered List
-- `⌘\ctrl` + `'`: Indent (while in OL/UL in visual mode)
-- `⌘\ctrl` + `;`: Outdent (while in OL/UL in visual mode)  
+- `⌘\ctrl` + `shift` + `[`: Unordered List
+- `⌘\ctrl` + `shift` + `]`: Ordered List
+- `⌘\ctrl` + `shift` + `'`: Indent (while in OL/UL in visual mode)
+- `⌘\ctrl` + `shift` + `;`: Outdent (while in OL/UL in visual mode)  

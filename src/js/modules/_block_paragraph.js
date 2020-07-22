@@ -106,24 +106,24 @@ class ParagraphBlock extends Block {
                         new SelectionWrapper('h4', this.view);
                         return false;
                         break;
+                    case 186:
+                        if (this.insideTag('ul') || this.insideTag('ol')) {
+                            e.preventDefault();
+                            document.execCommand('outdent');
+                            return false;
+                        }
+                        break;
+                    case 192:
+                    case 222:
+                        if (this.insideTag('ul') || this.insideTag('ol')) {
+                            e.preventDefault();
+                            document.execCommand('indent');
+                            return false;
+                        }
+                        break;
                 }
             }
             switch (e.keyCode) {
-                case 186:
-                    if (this.insideTag('ul') || this.insideTag('ol')) {
-                        e.preventDefault();
-                        document.execCommand('outdent');
-                        return false;
-                    }
-                    break;
-                case 192:
-                case 222:
-                    if (this.insideTag('ul') || this.insideTag('ol')) {
-                        e.preventDefault();
-                        document.execCommand('indent');
-                        return false;
-                    }
-                    break;
                 case 66: 
                     e.preventDefault();
                     new SelectionWrapper('strong', this.view);
