@@ -67,7 +67,7 @@ class SelectionWrapper {
                             this.range.selectNode(a);
                         }
                     }
-                    if (badTag) {
+                    if (badTag && !this.sel.isCollapsed) {
                         let badEl = this.sel.focusNode.parentElement;
                         let newEl = new DomEl(tag);
                         newEl.innerHTML = badEl.innerHTML;

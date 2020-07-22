@@ -1,3 +1,7 @@
+# 0.6.2
+## MODIFIED
+- Fixed bold/underline/italic issue when nothing is selected (check for Selection.isCollapsed in SelectionWrapper)
+
 # 0.6.1
 ## MODIFIED
 - Indent/outdent keyboard shortcuts in Paragraph Block now use ctrl + shift instead of just ctrl for parallelism
