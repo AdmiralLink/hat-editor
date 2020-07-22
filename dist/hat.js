@@ -3701,7 +3701,7 @@
     
     }();
 
-  class DomEl { 
+  class DomEl$1 { 
       constructor(creationString) {
           this.elType = creationString.match(/^(\w+)*/g);
           this.classes = creationString.match(/\.(?![^[]*])([^\s\.\#\[]*)/g);
@@ -3737,15 +3737,15 @@
       }
   }
 
-  class DomButton { 
+  class DomButton$1 { 
       constructor(title, icon, btnClass, text) {
           let btn = (btnClass) ? 'button.' + btnClass : 'button';
-          let buttonEl = new DomEl(btn + '[title="' + title + '"]');
+          let buttonEl = new DomEl$1(btn + '[title="' + title + '"]');
           if (icon) {
-              buttonEl.append(new DomEl('i.fas.fa-' + icon));
+              buttonEl.append(new DomEl$1('i.fas.fa-' + icon));
           }
           if (text) {
-              let span = new DomEl('span');
+              let span = new DomEl$1('span');
               span.innerText = text;
               buttonEl.append(span);
           }
@@ -3756,12 +3756,12 @@
   let Editor = function(containerEl, data) {
       let Blocks = [];
       let BlockChooser = {
-          choiceDiv: new DomEl('div.blockChoices'),
+          choiceDiv: new DomEl$1('div.blockChoices'),
           create: function() {
               BlockChooser.insertAddBlockButton();
               let blockChoices = window.Hat.getBlocks();
               for (let [slug, block] of Object.entries(blockChoices)) {
-                  let button = new DomButton(block.description, block.icon, 'choiceBtn', block.name); 
+                  let button = new DomButton$1(block.description, block.icon, 'choiceBtn', block.name); 
                   button.dataset.slug = slug;
                   BlockChooser.choiceDiv.append(button);
                   let control = Interface;
@@ -3774,8 +3774,8 @@
               }            Elements.newBlockContainer.append(BlockChooser.choiceDiv);
           },
           insertAddBlockButton: function() {
-              var button = new DomEl('button#addBlock[title=Create a new block by clicking here. You will be taken to the block type selector]');
-              var icon = new DomEl('i.fas.fa-plus-square');
+              var button = new DomEl$1('button#addBlock[title=Create a new block by clicking here. You will be taken to the block type selector]');
+              var icon = new DomEl$1('i.fas.fa-plus-square');
               button.innerHTML = icon.outerHTML + ' Add block';
               button.addEventListener('click', function(e) {
                   e.preventDefault();
@@ -3800,7 +3800,7 @@
       let Elements = {
           blockHolder: false,
           container: false,
-          newBlockContainer: new DomEl('div#newBlockContainer')
+          newBlockContainer: new DomEl$1('div#newBlockContainer')
       };
       let Events = {
           fire: function(eventName, element=Elements.blockHolder) {
@@ -3934,7 +3934,7 @@
           } else {
               this.settings = {};
           }
-          this.container = new DomEl('div.mechanicsContainer');
+          this.container = new DomEl$1('div.mechanicsContainer');
           this.parentBlock.el.append(this.container);
           this.mechanics = [];
           this.transition = false;
@@ -4027,12 +4027,35 @@
                   modal.close();
               });
           }
-          if (this.options.closeX) {
-              this.closeBtn.addEventListener('click', function(e) {
+          this.modalContainer.addEventListener('keydown', function(e) {
+              let option = this.options;
+              if (e.keyCode == 13) {
                   e.preventDefault();
-                  modal.close();
-              });
+                  if (modal.options.enterConfirms) {
+                      modal.confirm();
+                  }
+              }
+          });
+      }
+
+      addCloseX() {
+          this.closeBtn = new DomButton('Close modal', 'times-circle', 'closeBtn');
+          this.header.append(this.closeBtn);
+          let modal = this;
+          this.closeBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              modal.close();
+          });
+      }
+
+      addConfirmButton() {
+          let modal = this;
+          if (!this.buttonBar) {
+              this.buttonBar = new DomEl('div.modal-buttons');
           }
+          this.confirmBtn = new DomButton(this.options.confirmButtonTitle, false, this.options.confirmButtonClass, this.options.confirmButtonText);
+          this.buttonBar.append(this.confirmBtn);
+          this.modalContainer.append(this.buttonBar);
           if (this.options.confirm) {
               this.cancelBtn.addEventListener('click', function(e) {
                   e.preventDefault();
@@ -4042,15 +4065,6 @@
           this.confirmBtn.addEventListener('click', function(e) {
               e.preventDefault();
               modal.confirm();
-          });
-          this.modalContainer.addEventListener('keydown', function(e) {
-              let option = this.options;
-              if (e.keyCode == 13) {
-                  e.preventDefault();
-                  if (modal.options.enterConfirms) {
-                      modal.confirm();
-                  }
-              }
           });
       }
 
@@ -4077,8 +4091,6 @@
       }
 
       buildModal() {
-          this.backgroundDiv = new DomEl('div.miniModal-background');
-          this.modalContainer = new DomEl('div.miniModal-container');
           if (this.options.modalClass) {
               if (typeof(this.options.modalClass) == 'string') {
                   this.options.modalClass = [this.options.modalClass];
@@ -4095,29 +4107,44 @@
               this.header.append(h2);
           }
           if (this.options.closeX) {
-              this.closeBtn = new DomButton('Close modal', 'times-circle', 'closeBtn');
-              this.header.append(this.closeBtn);
+              this.addCloseX();
           }
           this.modalContainer.append(this.header);
-          this.modalContent = new DomEl('div.modal-content');
+          this.modalContent = new DomEl('div.modal-content[tab-index=0]');
+          if (this.options.notificationText) {
+              this.notification.innerText = this.options.notificationText;
+          }
           if (this.options.contentType == 'text') {
               this.modalContent.innerText = this.options.content;
+              if (!this.options.notificationText) {
+                  this.notification.innerText = this.options.content;
+              }
           } else if (this.options.contentType == 'node') {
               this.modalContent.append(this.options.content);
           } else {
               this.modalContent.innerHTML = this.options.content;
           }
-          this.modalContainer.append(this.modalContent);
-          let buttonBar = new DomEl('div.modal-buttons');
-          if (this.options.confirm) {
-              this.cancelBtn = new DomButton(this.options.cancelButtonTitle, false, this.options.cancelButtonClass, this.options.cancelButtonText);
-              buttonBar.append(this.cancelBtn);
-          } else {
-              buttonBar.style.textAlign = 'center';
+          if (this.options.notificationTarget) {
+              this.modalContainer.setAttribute('aria-describedby', this.options.notificationTarget);
           }
-          this.confirmBtn = new DomButton(this.options.confirmButtonTitle, false, this.options.confirmButtonClass, this.options.confirmButtonText);
-          buttonBar.append(this.confirmBtn);
-          this.modalContainer.append(buttonBar);
+          this.modalContainer.append(this.modalContent);
+          if (!this.options.noButtons) {
+              this.buttonBar = new DomEl('div.modal-buttons');
+              if (this.options.confirm) {
+                  this.cancelBtn = new DomButton(this.options.cancelButtonTitle, false, this.options.cancelButtonClass, this.options.cancelButtonText);
+                  this.buttonBar.append(this.cancelBtn);
+              } else {
+                  this.buttonBar.style.textAlign = 'center';
+              }
+              this.addConfirmButton();
+          }
+      }
+
+      buildBasicStructure() {
+          let theTime = new Date().getMilliseconds();
+          this.notification = new DomEl('label.sr-only[aria-live="alert"]#alertModalNotifier' + theTime);
+          this.backgroundDiv = new DomEl('div.miniModal-background');
+          this.modalContainer = new DomEl('div.miniModal-container[aria-modal="true"]');
       }
 
       close() {
@@ -4144,12 +4171,17 @@
       }
 
       constructModal(content) {
+          this.buildBasicStructure();
           this.buildOptions(content);
           this.buildModal();
           this.addClickHandlers();
           this.addKeyboardHandlers();
           this.show();
-          return this.modalContainer;
+          if (this.options.returnObject) {
+              return this;
+          } else {
+              return this.modalContainer;
+          }
       }
 
       getDefaultOptions() {
@@ -4168,7 +4200,11 @@
               enterConfirms: true,
               focusTarget: false,
               header: false,
-              modalClass: false
+              modalClass: false,
+              noButtons: false,
+              notificationTarget: this.notification.id,
+              notificationText: false,
+              returnObject: false
           };
       }
 
@@ -4177,24 +4213,29 @@
           document.body.append(this.modalContainer);
           this.backgroundDiv.classList.add('show');
           this.modalContainer.classList.add('show');
+          let target = this.confirmBtn; 
           if (this.options.focusTarget) {
-              this.options.focusTarget.focus();
-          } else {
-              if (this.options.confirm) {
-                  this.cancelBtn.focus();
+              if (typeof(this.options.focusTarget) == 'string') {
+                  target = this[this.options.focusTarget];
               } else {
-                  this.confirmBtn.focus();
-              }
+                  target = this.options.focusTarget;
+              }   
+          } else if (this.options.confirm) {
+              target = this.cancelBtn;
           }
+          setTimeout(function() {
+              target.focus();
+          },0);
       }
   }
 
   class Checkbox {
       constructor(name, labelDisplay, altTextOff, altTextChecked, value) {
           let checked = (value) ? '[checked]' : '';
-          this.box = new DomEl('input[type=checkbox][id=' + name + '][name=' + name + ']' + checked);
-          this.label = new DomEl('label[for=' + name + '][tabindex=0][describedby=Description' + name +'].checkbox');
-          let notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#Description' + name);
+          let id = name + new Date().getMilliseconds();
+          this.box = new DomEl$1('input[type=checkbox][id=' + id + '][name=' + name + ']' + checked);
+          this.label = new DomEl$1('label[for=' + id + '][tabindex=0][describedby=Description' + name +'].checkbox');
+          let notification = new DomEl$1('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#Description' + name);
           notification.innerText = (value) ? altTextChecked : altTextOff; 
           this.label.addEventListener('keydown', function(e) {
               if (e.keyCode == 32) {
@@ -4202,9 +4243,9 @@
                   notification.innerText = (this.label.children[0].checked) ? altTextChecked : altTextOff;
               }
           });
-          this.checkOff = new DomEl('span.fas.fa-circle');
-          this.checkOn = new DomEl('span.fas.fa-check-circle');
-          this.text = new DomEl('span');
+          this.checkOff = new DomEl$1('span.fas.fa-circle');
+          this.checkOn = new DomEl$1('span.fas.fa-check-circle');
+          this.text = new DomEl$1('span');
           this.text.innerText = labelDisplay;
           this.label.append(this.box);
           this.label.append(this.checkOff);
@@ -4223,11 +4264,11 @@
           if (placeholder) {
               inputString += '[placeholder="' + placeholder + '"]';
           }
-          let input = new DomEl(inputString);
+          let input = new DomEl$1(inputString);
           if (value) {
               input.value = value;
           }
-          let label = new DomEl('label[for="' + nodeId + '"]');
+          let label = new DomEl$1('label[for="' + nodeId + '"]');
           label.innerText = labelName;
           label.append(input);
           return label; 
@@ -4236,8 +4277,8 @@
 
   class Mechanic {
       constructor(buttonSettings, className) {
-          this.button = new DomButton(buttonSettings.title, buttonSettings.icon, buttonSettings.class);
-          this.div = new DomEl('div.mechanics.' + className);
+          this.button = new DomButton$1(buttonSettings.title, buttonSettings.icon, buttonSettings.class);
+          this.div = new DomEl$1('div.mechanics.' + className);
           this.registerBasicEvents();
           this.registerEvents();
       }
@@ -4283,7 +4324,7 @@
 
       registerCloseButton() {
           let mech = this;
-          this.closeButton = new DomButton('Close settings panel', false, 'closeBtn', 'Close');
+          this.closeButton = new DomButton$1('Close settings panel', false, 'closeBtn', 'Close');
           mech.div.append(this.closeButton);
           this.closeButton.addEventListener('click', function(e) {
               e.preventDefault();
@@ -4377,19 +4418,19 @@
       }
 
       addBlockControls() {
-          this.upButton = new DomEl('button[aria-label="Move block up one position"]');
-          let upArrow = new DomEl('i.fas.fa-chevron-up');
+          this.upButton = new DomEl$1('button[aria-label="Move block up one position"]');
+          let upArrow = new DomEl$1('i.fas.fa-chevron-up');
           this.upButton.append(upArrow);
-          this.moveButton = new DomEl('button[aria-label="Click and drag to move block"].handle');
-          let gripIcon = new DomEl('i.fas.fa-grip-horizontal');
+          this.moveButton = new DomEl$1('button[aria-label="Click and drag to move block"].handle');
+          let gripIcon = new DomEl$1('i.fas.fa-grip-horizontal');
           this.moveButton.append(gripIcon); 
-          this.downButton = new DomEl('button[aria-label="Move block down one position]');
-          let downArrow = new DomEl('i.fas.fa-chevron-down');
+          this.downButton = new DomEl$1('button[aria-label="Move block down one position]');
+          let downArrow = new DomEl$1('i.fas.fa-chevron-down');
           this.downButton.append(downArrow);
           this.blockControlsContainer.append(this.upButton);
           this.blockControlsContainer.append(this.moveButton);
           this.blockControlsContainer.append(this.downButton);
-          this.deleteButton = new DomButton('Delete block', 'trash-alt', 'deleteBtn');
+          this.deleteButton = new DomButton$1('Delete block', 'trash-alt', 'deleteBtn');
           this.settingsContainer.append(this.deleteButton);
       }
       
@@ -4434,8 +4475,8 @@
       addEvents() {}
 
       addInfoButton() {
-          var infoButton = new DomEl('button.settings[aria-role="tab"][title="Open block settings dialog"][aria-selected="false"][tabindex="-1"][aria-controls="settings-info"]');
-          var iconEl = new DomEl('i.fas.fa-info');
+          var infoButton = new DomEl$1('button.settings[aria-role="tab"][title="Open block settings dialog"][aria-selected="false"][tabindex="-1"][aria-controls="settings-info"]');
+          var iconEl = new DomEl$1('i.fas.fa-info');
           infoButton.append(iconEl);
           this.settingsContainer.append(infoButton);
       }
@@ -4547,12 +4588,12 @@
       }
 
       setup() {
-          this.el = new DomEl('div.block');
-          this.blockControlsContainer = new DomEl('div[aria-label="Block Controls"]');
-          this.middleContainer = new DomEl('div.contentSection');
-          this.contentContainer = new DomEl('div');
+          this.el = new DomEl$1('div.block');
+          this.blockControlsContainer = new DomEl$1('div[aria-label="Block Controls"]');
+          this.middleContainer = new DomEl$1('div.contentSection');
+          this.contentContainer = new DomEl$1('div');
           this.middleContainer.append(this.contentContainer);
-          this.settingsContainer = new DomEl('div[aria-role="tablist"][aria-label="Block settings]');
+          this.settingsContainer = new DomEl$1('div[aria-role="tablist"][aria-label="Block settings]');
           this.el.append(this.blockControlsContainer);
           this.el.append(this.middleContainer);
           this.el.append(this.settingsContainer);
@@ -4563,7 +4604,7 @@
   class CodeBlock extends Block {
       createElement() {
           this.el.classList.add('code');
-          this.contentEl = new DomEl('textarea.codespace');
+          this.contentEl = new DomEl$1('textarea.codespace');
           this.contentContainer.appendChild(this.contentEl);
       }
 
@@ -4605,10 +4646,10 @@
 
   class ErrorModal$1 extends MiniModal {
       constructor(errorMessage) {
-          let errorDiv = new DomEl('div.error');
-          errorDiv.append(new DomEl('i.fas.fa-exclamation-circle.fa-2x'));
-          errorDiv.append(new DomEl('br'));
-          errorDiv.append(new DomEl('p').innerText = errorMessage);
+          let errorDiv = new DomEl$1('div.error');
+          errorDiv.append(new DomEl$1('i.fas.fa-exclamation-circle.fa-2x'));
+          errorDiv.append(new DomEl$1('br'));
+          errorDiv.append(new DomEl$1('p').innerText = errorMessage);
           super({
               closeX: false,
               confirmButtonClass: false,
@@ -4626,12 +4667,17 @@
           this.xhr = new XMLHttpRequest();
           let fd = false;
           if (data) {
-              fd = new FormData();
-              for (let [key,value] of Object.entries(data)) {
-                  if (typeof(value) == 'object') {
-                      value = JSON.stringify(value);
+              if (data.constructor && data.constructor.name && data.constructor.name == 'FormData') {
+                  // Don't mess with data passed as FormData
+                  fd = data;
+              } else {
+                  fd = new FormData();
+                  for (let [key,value] of Object.entries(data)) {
+                      if (typeof(value) == 'object') {
+                          value = JSON.stringify(value);
+                      }
+                      fd.append(key, value);
                   }
-                  fd.append(key, value);
               }
           }
           var xhr = new XMLHttpRequest();
@@ -4640,7 +4686,7 @@
                   progressBar.update( Math.round( (e.loaded * 100) /e.total) );
               });
           }
-          this.eventEl = new DomEl('div');
+          this.eventEl = new DomEl$1('div');
           xhr.responseType = 'json';
           xhr.open(method, url);
           if (data) {
@@ -4696,16 +4742,16 @@
           this.type = type || 'Upload';
           this.removeOnCompletion = removeOnCompletion;
           let notificationId = 'progress' + new Date().getMilliseconds();
-          this.notification = new DomEl('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#' + notificationId);
+          this.notification = new DomEl$1('div.sr-only[tab-index=0][aria-hidden=true][aria-live=assertive][aria-atomic=additions]#' + notificationId);
           this.notification.innerText = 'Press spacebar to get current value';
-          this.track = new DomEl('div.progressBar[tab-index=1][role=progressbar][aria-describedby=' + notificationId + '][aria-valuenow=0]');
+          this.track = new DomEl$1('div.progressBar[tab-index=1][role=progressbar][aria-describedby=' + notificationId + '][aria-valuenow=0]');
           let theBar = this;
           this.track.addEventListener('keydown', function(e) {
               if (e.keyCode == 32) {
                   theBar.notify();
               }
           });
-          this.bar = new DomEl('div.bar[tab-index=0]');
+          this.bar = new DomEl$1('div.bar[tab-index=0]');
           this.track.append(this.bar);
           target.append(this.track);
           target.append(this.notification);
@@ -4829,14 +4875,14 @@
 
       createElements() {
           this.fileData = false;
-          this.container = new DomEl('div');
-          this.form = new DomEl('div.imageUploadContainer');
-          this.input = new DomEl('input[type=file][tabindex=-1][name="uploader"]#uploader');
-          let span = new DomEl('span');
+          this.container = new DomEl$1('div');
+          this.form = new DomEl$1('div.imageUploadContainer');
+          this.input = new DomEl$1('input[type=file][tabindex=-1][name="uploader"]#uploader');
+          let span = new DomEl$1('span');
           span.innerText = 'Click here to browse or drop the image you want to upload';
-          let icon = new DomEl('i.fas.fa-file-image');
-          this.label = new DomEl('label.imageUploader[for="uploader"][tabindex=0][title="Hit enter to browse for an image to upload"]');
-          this.preview = new DomEl('img.preview'); 
+          let icon = new DomEl$1('i.fas.fa-file-image');
+          this.label = new DomEl$1('label.imageUploader[for="uploader"][tabindex=0][title="Hit enter to browse for an image to upload"]');
+          this.preview = new DomEl$1('img.preview'); 
           this.label.append(icon);
           this.label.append(this.preview);
           this.label.append(document.createElement('br'));
@@ -4850,7 +4896,7 @@
       }
 
       createImageEl(url, altText) {
-          this.imageEl = new DomEl('img[src=' + url + '][alt=' + altText + '].chosen');
+          this.imageEl = new DomEl$1('img[src=' + url + '][alt=' + altText + '].chosen');
       }
 
       setContent(content) {
@@ -4904,7 +4950,7 @@
       createElement() {
           this.el.classList.add('image');
           this.uploader = new ImageUploader();
-          this.removeButton = new DomButton('Select this to remove the current image', 'eye-slash', 'removeBtn', 'Remove image');
+          this.removeButton = new DomButton$1('Select this to remove the current image', 'eye-slash', 'removeBtn', 'Remove image');
           this.removeButton.classList.add('hide');
           this.contentContainer.appendChild(this.uploader.form);
           this.contentContainer.appendChild(this.removeButton);
@@ -5012,7 +5058,7 @@
                       }
                       if (badTag) {
                           let badEl = this.sel.focusNode.parentElement;
-                          let newEl = new DomEl(tag);
+                          let newEl = new DomEl$1(tag);
                           newEl.innerHTML = badEl.innerHTML;
                           badEl.parentElement.insertBefore(newEl, badEl);
                           badEl.remove();
@@ -5064,7 +5110,7 @@
 
   class BrowserFormattingButton {
       constructor(title, icon, tag, parentBlock) {
-          let button = new DomButton(title, icon);
+          let button = new DomButton$1(title, icon);
           button.addEventListener('click', function(e) {
               e.preventDefault();
               new SelectionWrapper(tag, parentBlock.view);       
@@ -5163,7 +5209,7 @@
       }
 
       createElements() {
-          this.form = new DomEl('div#linkForm');
+          this.form = new DomEl$1('div#linkForm');
           this.hrefField = new InputField('linkHref', 'Link', 'https://google.com or tel:18009453669 or mailto:me@you.com', 'text', this.href);
           this.blankField = new Checkbox('targetBlank', 'Open in new window', 'Link will not open in new tab. Press spacebar to have link open in new tab', 'Link currently opens in new tab. Press spacebar to disable this', this.blank);
           this.textField = new InputField('displayText', 'Text to display', false, 'text', this.text);   
@@ -5195,7 +5241,7 @@
   class ParagraphToolbar {
       constructor(paragraphBlock) {
           this.parentBlock = paragraphBlock;
-          this.container = new DomEl('div.toolbar[aria-label="Paragraph block toolbar"]');
+          this.container = new DomEl$1('div.toolbar[aria-label="Paragraph block toolbar"]');
           this.addHtmlView();
           this.addFormattingButtons();
           this.addHeaderButton();
@@ -5254,7 +5300,7 @@
       addHeaderButton() {
           let toolbar = this; 
           ['h1','h2','h3','h4'].forEach(function(header) {
-              let btn = new DomButton('Insert/convert to ' + header, false, 'textBtn', header);
+              let btn = new DomButton$1('Insert/convert to ' + header, false, 'textBtn', header);
               btn.addEventListener('click', function(e) {
                   e.preventDefault();
                   new SelectionWrapper(header, toolbar.parentBlock.view);
@@ -5266,7 +5312,7 @@
 
       addHtmlView() {
           let toolbar = this;
-          let el = new DomButton('View HTML', 'laptop-code');
+          let el = new DomButton$1('View HTML', 'laptop-code');
           el.addEventListener('click', function(e) {
               e.preventDefault();
               toolbar.toggleHtmlView();
@@ -5341,7 +5387,7 @@
 
       addImageButton() {
           let toolbar = this;
-          let el = new DomButton('Insert image', 'image');
+          let el = new DomButton$1('Insert image', 'image');
           el.addEventListener('click', function(e) {
               e.preventDefault();
               toolbar.addImage();
@@ -5352,7 +5398,7 @@
 
       addLinkButton() {
           let toolbar = this;
-          let el = new DomButton('Insert Link', 'link');
+          let el = new DomButton$1('Insert Link', 'link');
           el.addEventListener('click', function(e) {
               e.preventDefault();
               toolbar.addLink();
@@ -5363,7 +5409,7 @@
       
       addUnlinkButton() {
         let toolbar = this;
-        this.unlinkBtn = new DomButton('Unlink text', 'unlink');
+        this.unlinkBtn = new DomButton$1('Unlink text', 'unlink');
         this.unlinkBtn.setAttribute('disabled', true);
         this.unlinkBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -5520,10 +5566,10 @@
   class ParagraphBlock extends Block {
       createElement() {
           this.el.classList.add('paragraph');
-          this.contentEl = new DomEl('div.contentContainer');
-          this.editEl = new DomEl('div[contentEditable=true].editContainer');
+          this.contentEl = new DomEl$1('div.contentContainer');
+          this.editEl = new DomEl$1('div[contentEditable=true].editContainer');
           // htmlEl is a contenteditable div, not a textarea, because textareas have too many issues re:selections, and the contenteditable div is manageable
-          this.htmlEl = new DomEl('div.htmlView[contentEditable=true].flip');
+          this.htmlEl = new DomEl$1('div.htmlView[contentEditable=true].flip');
           this.contentEl.appendChild(this.editEl);
           this.contentEl.appendChild(this.htmlEl);
           this.contentContainer.appendChild(this.contentEl);
@@ -5533,7 +5579,7 @@
       focus() {
           if (this.view == undefined) {
               this.view = 'content';
-              let starterP = new DomEl('p');
+              let starterP = new DomEl$1('p');
               this.editEl.append(starterP);
               new CursorFocus(starterP);
           } else if (this.view == 'content') {
@@ -5580,28 +5626,36 @@
           if (e.ctrlKey || e.metaKey) {
               if (e.shiftKey) {
                   switch(e.keyCode) {
-                      case 79:
+                      case 221:
+                          e.preventDefault();
                           new SelectionWrapper(['ol', 'li'], this.view);
                           return false;
-                      case 85:
+                      case 219:
+                          e.preventDefault();
                           new SelectionWrapper(['ul','li'], this.view);
                           return false;
                       case 73:
+                          e.preventDefault();
                           this.toolbar.addImage();
                           break;
                       case 75:
+                          e.preventDefault();
                           this.toolbar.unlink();
                           return false;
                       case 49:
+                          e.preventDefault();
                           new SelectionWrapper('h1', this.view);
                           return false;
                       case 50:
+                          e.preventDefault();
                           new SelectionWrapper('h2', this.view);
                           return false;
                       case 51:
+                          e.preventDefault();
                           new SelectionWrapper('h3', this.view);
                           return false;
                       case 52:
+                          e.preventDefault();
                           new SelectionWrapper('h4', this.view);
                           return false;
                   }

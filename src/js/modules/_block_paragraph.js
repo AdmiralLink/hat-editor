@@ -70,33 +70,39 @@ class ParagraphBlock extends Block {
         if (e.ctrlKey || e.metaKey) {
             if (e.shiftKey) {
                 switch(e.keyCode) {
-                    case 79:
+                    case 221:
+                        e.preventDefault();
                         new SelectionWrapper(['ol', 'li'], this.view);
                         return false;
-                        break;
-                    case 85:
+                    case 219:
+                        e.preventDefault();
                         new SelectionWrapper(['ul','li'], this.view);
                         return false;
-                        break;
                     case 73:
+                        e.preventDefault();
                         this.toolbar.addImage();
                         break;
                     case 75:
+                        e.preventDefault();
                         this.toolbar.unlink();
                         return false;
                     case 49:
+                        e.preventDefault();
                         new SelectionWrapper('h1', this.view);
                         return false;
                         break;
                     case 50:
+                        e.preventDefault();
                         new SelectionWrapper('h2', this.view);
                         return false;
                         break;
                     case 51:
+                        e.preventDefault();
                         new SelectionWrapper('h3', this.view);
                         return false;
                         break;
                     case 52:
+                        e.preventDefault();
                         new SelectionWrapper('h4', this.view);
                         return false;
                         break;

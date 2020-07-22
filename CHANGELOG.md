@@ -1,3 +1,8 @@
+# 0.6.0
+- ParagraphBlock keyboard shortcuts now preventDefault
+## MODIFIED
+- Changed keyboard shortcuts for ParagraphBlock OL/UL due to weird edge cases in Ubuntu
+
 # 0.5.2
 ## MODIFIED
 - Added randomizer to IDs for checkbox component to prevent duplicates

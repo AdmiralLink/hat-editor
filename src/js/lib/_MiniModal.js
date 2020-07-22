@@ -1,3 +1,5 @@
+export default MiniModal;
+
 class MiniModal {
     constructor(content, childClass=false) {
         this.confirmed = false;
