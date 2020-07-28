@@ -1,3 +1,7 @@
+# 0.6.3
+## MODIFIED
+- Hat now gets the proper position of blocks within the editor, and saves the content in the proper order.
+
 # 0.6.2
 ## MODIFIED
 - Fixed bold/underline/italic issue when nothing is selected (check for Selection.isCollapsed in SelectionWrapper)

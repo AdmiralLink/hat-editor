@@ -3875,30 +3875,39 @@
           getBlockContainer: function() {
               return Elements.blockHolder;
           },
-          getBlockPosition: function(blockEl) {
+          getBlockPosition: function (blockEl) {
               let blocks = Elements.blockHolder.querySelectorAll('.block');
               let position = { count: BlockCount };
               if (position.count == 1) {
                   position.first = true;
                   position.last = true;
+                  position.number = 1;
               } else {
                   position.first = (blocks[0] == blockEl);
-                  position.last = (blocks[BlockCount-1] == blockEl);
+                  position.last = (blocks[BlockCount - 1] == blockEl);
+                  for (let [idx, checkBlock] of Object.entries(blocks)) {
+                      if (checkBlock == blockEl) {
+                          position.number = idx;
+                      }
+                  }
               }
               return position;
           },
-          getContainer: function() {
+          getContainer: function () {
               return Elements.container;
           },
-          getContents: function() {
+          getContents: function () {
               let content = [];
               for (let [key, value] of Object.entries(Blocks)) {
+                  value.getPosition();
                   let contents = value.getContents();
                   if (!contents.settings.id) {
                       contents.settings.id = key;
                   }
-                  content.push(contents);
-              }            return content;
+                  content[value.position.number] = contents;
+              }
+
+              return content;
           },
           loadBlock: function(data) {
               let block = Interface.addBlock(false, false, data.type, data);
@@ -5056,7 +5065,7 @@
                               this.range.selectNode(a);
                           }
                       }
-                      if (badTag) {
+                      if (badTag && !this.sel.isCollapsed) {
                           let badEl = this.sel.focusNode.parentElement;
                           let newEl = new DomEl$1(tag);
                           newEl.innerHTML = badEl.innerHTML;
