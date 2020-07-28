@@ -132,7 +132,7 @@ let Editor = function(containerEl, data) {
             if (position.count == 1) {
                 position.first = true;
                 position.last = true;
-                position.number = 1;
+                position.number = 0;
             } else {
                 position.first = (blocks[0] == blockEl);
                 position.last = (blocks[BlockCount - 1] == blockEl);

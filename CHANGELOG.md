@@ -1,6 +1,10 @@
+# 0.6.4
+## MODIFIED
+- Single blocks have position 0 instead of 1 (oops)
+
 # 0.6.3
 ## MODIFIED
-- Hat now gets the proper position of blocks within the editor, and saves the content in the proper order.
+- Hat now gets the proper position of blocks within the editor, and saves the content in the proper order (modifies getBlockPosition, getContents)
 
 # 0.6.2
 ## MODIFIED
