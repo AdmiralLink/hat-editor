@@ -95,7 +95,7 @@ let Editor = function(containerEl, data) {
                     Blocks[newFocus].focus();
                 }
                 block.el.remove();
-                Blocks.splice(blockId);
+                Blocks.splice(blockId, 1);
                 BlockCount--;
                 if (defaultAction) {
                     Events.fire('blockChanged');

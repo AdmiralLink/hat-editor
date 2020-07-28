@@ -1,3 +1,7 @@
+# 0.6.5
+## MODIFIED
+- RemoveBlock actually removes block (.splice() required a count in addition to an index)
+
 # 0.6.4
 ## MODIFIED
 - Single blocks have position 0 instead of 1 (oops)
